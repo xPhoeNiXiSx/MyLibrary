@@ -96,7 +96,9 @@ panneau indique la date du dernier passage (`migrations.last_run` dans
 ## Déploiement
 
 Relier le dépôt à un projet Vercel via l'intégration GitHub : un push sur
-`main` déploie en production. Les fonctions serveur sont épinglées sur
+`main` déploie en production. Si Vercel affiche « No Production
+Deployment » alors que le dépôt est bien relié, c'est qu'aucun push n'a eu
+lieu depuis la liaison : le prochain push sur `main` le déclenche. Les fonctions serveur sont épinglées sur
 **Francfort** (`fra1`, voir `vercel.json`) : créer la base Neon dans la même
 région, sans quoi chaque requête SQL ferait un aller-retour transatlantique.
 
