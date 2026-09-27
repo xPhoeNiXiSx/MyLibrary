@@ -400,3 +400,399 @@ button[type="submit"]:disabled {
 .masthead nav a:hover {
   color: var(--fg);
 }
+
+/* --- Titres d'écran ------------------------------------------------------ */
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+}
+
+.section-label {
+  margin: 28px 0 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--fg);
+}
+
+.back-link + .page-title,
+.back-link + .series-header {
+  margin-top: 10px;
+}
+
+/* Action principale d'un écran : l'accent, réservé aux repères actifs. */
+.pill-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #1a0f0a;
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.pill-button:hover {
+  opacity: 0.9;
+}
+
+/* --- Couvertures --------------------------------------------------------- */
+
+.cover {
+  width: 64px;
+  aspect-ratio: 2 / 3;
+  flex: none;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-strong);
+}
+
+.cover.large {
+  width: 88px;
+}
+
+/* Aucune source n'a d'image : le numéro tient lieu de couverture. */
+.cover-empty {
+  display: flex;
+  align-items: flex-end;
+  padding: 6px;
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--fg-muted);
+}
+
+/* --- Accueil : les séries ------------------------------------------------ */
+
+.series-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.series-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.series-card:hover {
+  background: var(--surface-hover);
+}
+
+.series-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.series-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.series-name {
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.series-count {
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.series-next {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--accent);
+}
+
+.series-done {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--positive);
+}
+
+.series-gaps {
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}
+
+.bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.bar > div {
+  height: 100%;
+  background: var(--accent);
+}
+
+/* --- Série : en-tête et repères ------------------------------------------ */
+
+.series-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  margin-top: 16px;
+}
+
+.series-header .page-title {
+  margin: 0;
+}
+
+.series-header > div {
+  min-width: 0;
+}
+
+.owned-count {
+  margin: 18px 0 0;
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+}
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+
+.stat-tile span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.stat-tile strong {
+  font-family: var(--font-display-stack);
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.stat-tile.accent {
+  background: var(--accent-soft);
+  border-color: #5a3a2c;
+}
+
+.stat-tile.accent span {
+  color: var(--accent);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 22px;
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.swatch.owned {
+  background: var(--border-strong);
+}
+
+.swatch.gap {
+  border: 2px solid var(--accent);
+}
+
+.swatch.later {
+  border: 1px dashed var(--fg-faint);
+}
+
+.legend + .hint {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  color: var(--fg-faint);
+}
+
+/* --- Série : grille des tomes --------------------------------------------- */
+
+.volume-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.volume {
+  height: 46px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display-stack);
+  font-size: 0.875rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.volume.owned {
+  border: 0;
+  background: var(--border-strong);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.volume.gap {
+  border: 2px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.volume.later {
+  border: 1px dashed #4a453f;
+  background: transparent;
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+
+/* --- Série : réglages ---------------------------------------------------- */
+
+.settings {
+  margin-top: 32px;
+}
+
+.settings summary {
+  cursor: pointer;
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+}
+
+.settings .form {
+  margin-top: 18px;
+}
+
+.settings .form + .form {
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+button[type="submit"].secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+}
+
+button[type="submit"].danger {
+  background: var(--negative-soft);
+  color: var(--negative);
+}
+
+/* --- Ajout d'une série : résultats de recherche --------------------------- */
+
+.search-results {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-result {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-decoration: none;
+}
+
+.search-result:hover {
+  background: var(--surface-hover);
+}
+
+.search-result .cover {
+  width: 48px;
+}
+
+.search-result > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.search-result .subtitle {
+  margin: 2px 0 0;
+}
+
+.page > .success,
+.page > .error {
+  margin-top: 16px;
+}
+
+.search-results + .hint,
+.panel + .hint,
+.panel + .error {
+  margin-top: 16px;
+}

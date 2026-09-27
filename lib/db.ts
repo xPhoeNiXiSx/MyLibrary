@@ -80,10 +80,13 @@ export async function lastMigrationRun(): Promise<Date | null> {
   return typeof value === "string" ? new Date(value) : null;
 }
 
-/** `true` si le schéma a déjà été appliqué. */
+/**
+ * `true` si le schéma est à jour. La table testée est la dernière créée :
+ * une base initialisée avant son ajout repasse par « Initialiser la base ».
+ */
 export async function isSchemaReady(): Promise<boolean> {
   const rows = await query<{ present: boolean }>(
-    `select to_regclass('public.app_settings') is not null as present`,
+    `select to_regclass('public.volume_covers') is not null as present`,
   );
   return rows[0]?.present === true;
 }

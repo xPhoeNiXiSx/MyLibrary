@@ -3,9 +3,53 @@
 Suivi de mes collections de mangas, en français.
 
 Le projet reprend la stack et les conventions de
-[MyCards](https://github.com/xPhoeNiXiSx/MyCards). Pour l'instant, c'est un
-socle : connexion, base de données et migrations sont en place, la gestion des
-collections reste à construire.
+[MyCards](https://github.com/xPhoeNiXiSx/MyCards).
+
+Deux écrans :
+
+- **`/`** — une carte par série, avec la couverture du prochain tome à
+  acheter, le compteur (84/108), une barre de progression et les trous
+- **`/series/[id]`** — tous les tomes en cases numérotées : possédé, manquant
+  (un trou sous le plus haut possédé) ou pas encore acheté. Un toucher coche ou
+  décoche
+
+Et **`/series/nouvelle`** pour ajouter une série : recherche par titre, puis
+éditeur français et « j'ai déjà les tomes 1 à… ».
+
+## Séries et tomes
+
+On ne stocke que les numéros cochés (`owned_volumes`). Le reste se déduit
+(`progressOf` dans `lib/series.ts`) :
+
+- **prochain tome** — celui qui suit le plus haut possédé, sauf si la série
+  est à jour ;
+- **tomes manquants** — les trous en dessous du plus haut possédé ;
+- **complète** — tous les tomes parus cochés.
+
+Le **nombre de tomes parus** vient des sources en ligne (`volumes_auto`) et
+se corrige à la main dans « Modifier la série » (`volumes_manual`), qui fait
+alors autorité. Vider le champ rend la main aux sources.
+
+## Sources en ligne
+
+Interrogées côté serveur uniquement (`lib/sources.ts`), à l'ajout d'une série,
+puis une fois par semaine à l'ouverture de sa page — après la réponse, pour
+ne pas faire attendre l'affichage — ou sur « Actualiser maintenant ».
+
+- **Google Books** — l'édition française : nombre de tomes parus en France et
+  vraies couvertures. Ne sont retenus que les résultats en français, chez
+  l'éditeur indiqué, déjà parus (une précommande ne doit pas devenir le
+  prochain tome), et dont le titre est celui de la série suivi du seul numéro
+  (« One Piece Party 3 » n'est pas le tome 3 de One Piece).
+- **MangaDex** — recherche des séries, auteur, statut, et une couverture par
+  tome (française si elle existe, sinon japonaise). Son nombre de tomes est
+  celui du Japon, souvent en avance : il ne sert qu'à défaut de Google Books,
+  et ne remplace jamais un compte français déjà relevé.
+
+Les couvertures sont gardées en base (`volume_covers`) : l'accueil n'appelle
+aucune source. Une ligne sans adresse veut dire « cherché, rien trouvé » ; une
+vignette numérotée s'affiche alors. La couverture française remplace la
+japonaise, jamais l'inverse.
 
 **L'application entière est privée.** Toute route autre que la page de
 connexion redirige vers celle-ci tant que la session n'est pas ouverte. La
@@ -47,7 +91,7 @@ change. Pas besoin de base ni de réseau pour les lancer.
 
 ## Configuration
 
-Trois variables d'environnement, à définir dans Vercel (Settings →
+Trois variables d'environnement (plus une facultative), à définir dans Vercel (Settings →
 Environment Variables) et dans un `.env.local` pour le développement :
 
 | Variable       | Rôle                                                        |
@@ -55,6 +99,7 @@ Environment Variables) et dans un `.env.local` pour le développement :
 | `DATABASE_URL` | Chaîne de connexion Postgres (Neon)                          |
 | `APP_PASSWORD` | Mot de passe unique d'accès à l'application                  |
 | `AUTH_SECRET`  | Clé de signature du cookie de session — une valeur aléatoire |
+| `GOOGLE_BOOKS_API_KEY` | Facultative. Sans clé, Google Books limite fortement les requêtes |
 
 Tant qu'elles manquent, l'accueil affiche un écran expliquant ce qui manque
 plutôt que de planter. Générer un secret : `openssl rand -base64 32`.
@@ -79,7 +124,9 @@ panneau indique la date du dernier passage (`migrations.last_run` dans
 
 | Chemin               | Rôle                                                       |
 | -------------------- | ---------------------------------------------------------- |
-| `app/page.tsx`       | Accueil provisoire : vérifie configuration, base et schéma |
+| `app/page.tsx`       | Accueil : les séries et le prochain tome à acheter         |
+| `app/series/`        | Page d'une série, grille des tomes, ajout, actions serveur |
+| `app/cover.tsx`      | Couverture d'un tome, ou vignette numérotée à défaut       |
 | `app/compte/`        | Compte : déconnexion, application des migrations           |
 | `app/login/`         | Connexion par mot de passe                                 |
 | `app/db-screens.tsx` | Écrans d'attente de la base, partagés par les pages        |
@@ -91,6 +138,10 @@ panneau indique la date du dernier passage (`migrations.last_run` dans
 | `lib/session.ts`     | Signature et vérification du cookie, sans `next/headers`   |
 | `lib/auth.ts`        | Session par mot de passe unique                            |
 | `lib/throttle.ts`    | Limite des essais de connexion, par adresse                |
+| `lib/series.ts`      | Séries, tomes cochés, couvertures, calcul du prochain tome |
+| `lib/sources.ts`     | Google Books et MangaDex — serveur uniquement              |
+| `lib/refresh.ts`     | Actualisation d'une série depuis les sources               |
+| `lib/format.ts`      | Mises en forme utilisables côté navigateur                 |
 | `lib/money.ts`       | Montants en centimes, formatage et saisie en euros         |
 
 ## Déploiement
@@ -104,5 +155,4 @@ région, sans quoi chaque requête SQL ferait un aller-retour transatlantique.
 
 ## Suite
 
-- Modèle de données des collections de mangas (séries, tomes, possession)
 - Identité visuelle propre : nom affiché, logotype, favicon
