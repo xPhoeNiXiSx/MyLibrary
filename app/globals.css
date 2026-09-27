@@ -1,0 +1,402 @@
+/* ==========================================================================
+   MyLibrary — système visuel
+   Base reprise de MyCards, en attendant une identité propre. Thème sombre
+   unique ; l'accent terracotta ne sert qu'aux repères actifs et à la marque.
+   ========================================================================== */
+
+/* Thème unique : sombre. L'application n'est utilisée que dans ce mode, donc
+   pas de variante claire à maintenir ni de `prefers-color-scheme` à suivre. */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces, de l'arrière-plan au premier plan. */
+  --bg: #131210;
+  --bg-sunken: #0e0d0c;
+  --surface: #1c1a18;
+  --surface-hover: #232120;
+
+  /* Texte, du plus appuyé au plus discret. */
+  --fg: #f1ede7;
+  --fg-muted: #a39c92;
+  --fg-faint: #7c756c;
+
+  --border: #2e2b27;
+  --border-strong: #3d3833;
+
+  --accent: #e08a68;
+  --accent-soft: #34251e;
+
+  --positive: #6cc08b;
+  --positive-soft: #1a2b22;
+  --negative: #ef8b7d;
+  --negative-soft: #2f1e1b;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.5);
+
+  /* Repli défini ici plutôt que dans la seule pile : `font-family` construite
+     sur une variable absente est invalide *en entier*, et la page retombe en
+     serif. next/font surcharge ces deux valeurs sur <html>. */
+  --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-body);
+
+  --font-body-stack: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display-stack: var(--font-display), var(--font-body), ui-sans-serif,
+    system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body-stack);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --- Ossature de page -------------------------------------------------- */
+
+.page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 16px calc(40px + env(safe-area-inset-bottom, 0px));
+}
+
+.page.narrow {
+  max-width: 560px;
+}
+
+/* Collant en haut : la marque sert de retour à l'accueil. Le fond est
+   opaque, sinon le contenu défilerait en transparence sous l'en-tête. */
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: calc(22px + env(safe-area-inset-top, 0px)) 0 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.wordmark {
+  font-family: var(--font-display-stack);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.wordmark a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* Le logotype est un SVG en `currentColor` : la teinte se règle ici, et
+   nulle part ailleurs. Le texte clair le rend lisible sur le fond sombre. */
+.wordmark svg {
+  color: var(--fg);
+  height: 22px;
+  width: auto;
+  flex: none;
+  display: block;
+}
+
+.masthead p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+}
+
+/* Le titre de l'écran, juste sous la marque. C'est lui le h1 : le logotype
+   est une marque, pas le sujet de la page. */
+.page-title {
+  margin: 22px 0 0;
+  font-size: clamp(1.5rem, 6.5vw, 1.875rem);
+  text-wrap: balance;
+}
+
+/* Lien de retour, à droite de la marque. */
+.back {
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.back:hover {
+  color: var(--fg);
+}
+
+.section-title {
+  margin: 36px 0 14px;
+  font-size: 1.0625rem;
+}
+
+/* --- Panneaux et messages ---------------------------------------------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 22px;
+  margin-top: 22px;
+}
+
+.panel h2 {
+  font-size: 1.0625rem;
+  margin-bottom: 8px;
+}
+
+.hint {
+  color: var(--fg-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0 0 4px;
+}
+
+.error {
+  color: var(--negative);
+  background: var(--negative-soft);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125em;
+  background: var(--bg-sunken);
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+
+/* --- Formulaires -------------------------------------------------------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form .row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+  min-width: 0;
+}
+
+/* Le dimensionnement ne vaut que dans une ligne. `.form` étant une colonne,
+   l'appliquer à tous les champs transformerait la base flex en hauteur
+   imposée et creuserait des blancs sous les champs pleine largeur. */
+.form .row > label {
+  flex: 1 1 180px;
+}
+
+.form .row > label.grow {
+  flex: 3 1 240px;
+}
+
+.form .row > label.narrow {
+  flex: 0 1 158px;
+}
+
+.form .row > label.tiny {
+  flex: 0 1 84px;
+}
+
+.form small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--fg-faint);
+}
+
+.form input,
+.form select {
+  font: inherit;
+  /* 16 px : voir `.filter input`. Un champ plus petit fait zoomer iOS. */
+  font-size: 1rem;
+  /* Aucun champ ne dépasse son conteneur, quelle que soit sa largeur
+     intrinsèque. */
+  max-width: 100%;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  width: 100%;
+  min-width: 0;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.form input::placeholder {
+  color: var(--fg-faint);
+}
+
+.form input:hover,
+.form select:hover {
+  border-color: var(--border-strong);
+}
+
+button[type="submit"] {
+  font-family: var(--font-display-stack);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+  color: var(--bg);
+  background: var(--fg);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 11px 22px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: opacity 0.15s ease;
+}
+
+button[type="submit"]:hover {
+  opacity: 0.88;
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.success {
+  color: var(--positive);
+  background: var(--positive-soft);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.form input[type="date"],
+.form input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+}
+
+/* Le champ retrouve son indicateur de calendrier, que `appearance: none`
+   masque sur certaines versions. */
+.form input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: var(--fg);
+}
+
+.check-row:hover {
+  background: var(--surface-hover);
+}
+
+.check-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.check-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.check-row small {
+  font-size: 0.75rem;
+  color: var(--fg-faint);
+}
+
+/* `.form label` empile ses enfants en colonne : la case reste à côté. */
+.form label.check-row {
+  flex-direction: row;
+  font-size: 0.9375rem;
+  color: var(--fg);
+}
+
+
+/* --- Accueil provisoire -------------------------------------------------- */
+
+.masthead nav a {
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+
+.masthead nav a:hover {
+  color: var(--fg);
+}
