@@ -18,6 +18,7 @@ import {
   setQueryRunner,
 } from "../lib/db";
 import { formatGaps } from "../lib/format";
+import { SCHEMA_STATEMENTS } from "../lib/schema";
 import { formatCents, parseEuros, percentChange } from "../lib/money";
 import { isStale, refreshSeries } from "../lib/refresh";
 import {
@@ -68,6 +69,11 @@ async function main() {
   assert.equal(await isSchemaReady(), false);
   ok("une base vide est détectée comme non initialisée");
 
+  // Une base initialisée avant le dernier ajout au schéma doit le voir.
+  for (const statement of SCHEMA_STATEMENTS.slice(0, -1)) await query(statement);
+  assert.equal(await isSchemaReady(), false);
+  ok("une base en retard d'une évolution est détectée comme à mettre à jour");
+
   await runMigrations();
   assert.equal(await isSchemaReady(), true);
   ok("le schéma s'applique depuis l'application");
@@ -83,7 +89,7 @@ async function main() {
 
   // --- Séries et tomes ---------------------------------------------------
 
-  const onePiece = await createSeries(
+  const { series: onePiece } = await createSeries(
     { title: "One Piece", author: null, publisher: "Glénat", mangadexId: null },
     86,
   );
@@ -136,7 +142,7 @@ async function main() {
   assert.equal(progressOf((await getSeries(onePiece.id))!).next, 87);
   ok("vider la correction rend la main aux sources");
 
-  const blueLock = await createSeries(
+  const { series: blueLock } = await createSeries(
     { title: "Blue Lock", author: null, publisher: null, mangadexId: null },
     0,
   );
@@ -147,6 +153,37 @@ async function main() {
     ["Blue Lock", "One Piece"],
   );
   ok("une série sans tome propose le tome 1, la liste est triée par titre");
+
+  // Le formulaire envoyé deux fois, l'un après l'autre puis en même temps.
+  const ownedBefore = (await getSeries(onePiece.id))!.owned.length;
+  const again = await createSeries(
+    { title: "  one  PIECE ", author: null, publisher: "glenat", mangadexId: null },
+    3,
+  );
+  assert.equal(again.created, false);
+  assert.equal(again.series.id, onePiece.id);
+  assert.equal(again.series.owned.length, ownedBefore);
+  const twins = await Promise.all(
+    [1, 2].map(() =>
+      createSeries({ title: "Kaiju n°8", author: null, publisher: "Kazé", mangadexId: "dex-kaiju" }, 2),
+    ),
+  );
+  assert.deepEqual(twins.map((t) => t.created).sort(), [false, true]);
+  assert.equal(twins[0].series.id, twins[1].series.id);
+  assert.equal(
+    (await query(`select 1 from series where mangadex_id = 'dex-kaiju'`)).length,
+    1,
+  );
+  await deleteSeries(twins[0].series.id);
+  ok("un double envoi du formulaire ne crée qu'une série, sans toucher à ses tomes");
+
+  const otherPublisher = await createSeries(
+    { title: "One Piece", author: null, publisher: "Glénat Collector", mangadexId: null },
+    0,
+  );
+  assert.equal(otherPublisher.created, true);
+  await deleteSeries(otherPublisher.series.id);
+  ok("la même série chez un autre éditeur reste possible");
 
   assert.equal(await getSeries("pas-un-uuid"), null);
   assert.equal(await getSeries("00000000-0000-0000-0000-000000000000"), null);
@@ -300,7 +337,7 @@ async function main() {
   }) as typeof fetch;
 
   try {
-    const dandadan = await createSeries(
+    const { series: dandadan } = await createSeries(
       { title: "Dandadan", author: null, publisher: "Crunchyroll", mangadexId: "dex-dandadan" },
       1,
     );

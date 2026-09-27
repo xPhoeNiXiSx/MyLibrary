@@ -65,4 +65,13 @@ export const SCHEMA_STATEMENTS: string[] = [
      fetched_at  timestamptz not null default now(),
      primary key (series_id, number)
    )`,
+
+  // Clé d'ajout : un double envoi du formulaire (un second toucher pendant
+  // que les sources répondent) ne doit pas créer la série deux fois. Index
+  // partiel : les séries d'avant cette colonne restent sans clé, doublons
+  // compris — rien n'est supprimé à leur place.
+  `alter table series add column if not exists dedupe_key text`,
+
+  `create unique index if not exists series_dedupe_key_idx
+     on series (dedupe_key) where dedupe_key is not null`,
 ];

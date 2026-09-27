@@ -4,6 +4,7 @@ import { PUBLISHERS } from "@/lib/publishers";
 import { searchManga, type MangaMatch } from "@/lib/sources";
 
 import { Masthead } from "../../masthead";
+import { SubmitButton } from "../../submit-button";
 import { createSeriesAction } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +66,7 @@ export default async function NewSeriesPage({
             <small>Les trous éventuels se décochent ensuite, tome par tome.</small>
           </label>
           {erreur === "titre" ? <p className="error">Le titre est obligatoire.</p> : null}
-          <button type="submit">Ajouter la série</button>
+          <SubmitButton pending="Ajout en cours…">Ajouter la série</SubmitButton>
           <datalist id="publishers">
             {PUBLISHERS.map((name) => (
               <option key={name} value={name} />

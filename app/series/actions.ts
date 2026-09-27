@@ -42,7 +42,7 @@ export async function createSeriesAction(form: FormData): Promise<void> {
   const title = text(form, "title");
   if (!title) redirect("/series/nouvelle?manuel=1&erreur=titre");
 
-  const series = await createSeries(
+  const { series, created } = await createSeries(
     {
       title,
       author: text(form, "author"),
@@ -51,6 +51,10 @@ export async function createSeriesAction(form: FormData): Promise<void> {
     },
     positiveInt(form, "ownedUpTo") ?? 0,
   );
+
+  // Déjà là (double envoi, ou série ajoutée plus tôt) : on l'ouvre, sans
+  // rien y toucher.
+  if (!created) redirect(`/series/${series.id}?existe=1`);
 
   // Attendu, pas lancé en tâche de fond : la série doit s'ouvrir avec son
   // nombre de tomes et ses couvertures. Un échec n'empêche pas la création.

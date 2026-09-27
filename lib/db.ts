@@ -81,12 +81,13 @@ export async function lastMigrationRun(): Promise<Date | null> {
 }
 
 /**
- * `true` si le schéma est à jour. La table testée est la dernière créée :
- * une base initialisée avant son ajout repasse par « Initialiser la base ».
+ * `true` si le schéma est à jour. L'objet testé est le dernier ajouté au
+ * schéma : une base initialisée avant son ajout repasse par « Initialiser la
+ * base ». À faire suivre à chaque évolution de `SCHEMA_STATEMENTS`.
  */
 export async function isSchemaReady(): Promise<boolean> {
   const rows = await query<{ present: boolean }>(
-    `select to_regclass('public.volume_covers') is not null as present`,
+    `select to_regclass('public.series_dedupe_key_idx') is not null as present`,
   );
   return rows[0]?.present === true;
 }

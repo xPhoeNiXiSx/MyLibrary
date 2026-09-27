@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { normalizeTitle } from "@/lib/sources";
 
 /**
  * Les séries suivies et les tomes possédés.
@@ -125,16 +126,43 @@ export async function getSeries(id: string): Promise<Series | null> {
   return rows[0] ? fromRow(rows[0]) : null;
 }
 
+/**
+ * La même série chez le même éditeur : l'identifiant MangaDex s'il y en a
+ * un, le titre normalisé sinon. Ne sert qu'à l'ajout — modifier ensuite le
+ * titre ou l'éditeur ne la change pas.
+ */
+export function dedupeKey(input: SeriesInput): string {
+  const series = input.mangadexId ? `dex:${input.mangadexId}` : `titre:${normalizeTitle(input.title)}`;
+  return `${series}|${normalizeTitle(input.publisher ?? "")}`;
+}
+
+/**
+ * Crée la série, ou renvoie celle qui existe déjà avec la même clé d'ajout
+ * (`created: false`) : un formulaire envoyé deux fois ne fait qu'une série.
+ * L'index unique tranche même quand les deux envois arrivent ensemble.
+ */
 export async function createSeries(
   input: SeriesInput,
   ownedUpTo: number,
-): Promise<Series> {
-  const rows = await query<{ id: string }>(
-    `insert into series (title, author, publisher, mangadex_id)
-     values ($1, $2, $3, $4) returning id`,
-    [input.title, input.author, input.publisher, input.mangadexId],
+): Promise<{ series: Series; created: boolean }> {
+  const key = dedupeKey(input);
+  const inserted = await query<{ id: string }>(
+    `insert into series (title, author, publisher, mangadex_id, dedupe_key)
+     values ($1, $2, $3, $4, $5)
+     on conflict (dedupe_key) where dedupe_key is not null do nothing
+     returning id`,
+    [input.title, input.author, input.publisher, input.mangadexId, key],
   );
-  const id = rows[0].id;
+
+  if (inserted.length === 0) {
+    const existing = await query<{ id: string }>(
+      `select id from series where dedupe_key = $1`,
+      [key],
+    );
+    return { series: (await getSeries(existing[0].id))!, created: false };
+  }
+
+  const id = inserted[0].id;
 
   if (ownedUpTo > 0) {
     await query(
@@ -145,7 +173,7 @@ export async function createSeries(
     );
   }
 
-  return (await getSeries(id))!;
+  return { series: (await getSeries(id))!, created: true };
 }
 
 export async function updateSeries(

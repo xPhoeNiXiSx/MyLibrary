@@ -8,6 +8,7 @@ import { allCovers, getSeries, gridSize, progressOf } from "@/lib/series";
 
 import { Cover } from "../../cover";
 import { Masthead } from "../../masthead";
+import { SubmitButton } from "../../submit-button";
 import {
   deleteSeriesAction,
   refreshSeriesAction,
@@ -22,10 +23,15 @@ export default async function SeriesPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ enregistre?: string; actualise?: string; erreur?: string }>;
+  searchParams: Promise<{
+    enregistre?: string;
+    actualise?: string;
+    erreur?: string;
+    existe?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { enregistre, actualise, erreur } = await searchParams;
+  const { enregistre, actualise, erreur, existe } = await searchParams;
 
   const series = await getSeries(id);
   if (!series) notFound();
@@ -79,6 +85,11 @@ export default async function SeriesPage({
         </div>
       </div>
 
+      {existe ? (
+        <p className="success" role="status">
+          Cette série était déjà dans ta bibliothèque : la voici.
+        </p>
+      ) : null}
       {enregistre ? <p className="success" role="status">Modifications enregistrées.</p> : null}
       {actualise === "ok" ? (
         <p className="success" role="status">Infos actualisées depuis les sources.</p>
@@ -130,7 +141,7 @@ export default async function SeriesPage({
               Vide, c&apos;est le nombre des sources qui s&apos;applique.
             </small>
           </label>
-          <button type="submit">Enregistrer</button>
+          <SubmitButton pending="Enregistrement…">Enregistrer</SubmitButton>
         </form>
 
         <form action={refreshSeriesAction} className="form">
@@ -139,7 +150,9 @@ export default async function SeriesPage({
             Nombre de tomes et couvertures sont revus chaque semaine. Pour
             forcer la mise à jour :
           </p>
-          <button type="submit" className="secondary">Actualiser maintenant</button>
+          <SubmitButton className="secondary" pending="Actualisation…">
+            Actualiser maintenant
+          </SubmitButton>
         </form>
 
         <form action={deleteSeriesAction} className="form danger-zone">
