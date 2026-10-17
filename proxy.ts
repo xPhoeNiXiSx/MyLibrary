@@ -37,10 +37,11 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   /**
-   * Tout sauf les fichiers servis par Next et le manifeste, qu'iOS récupère
-   * sans session au moment de l'ajout à l'écran d'accueil.
+   * Tout sauf les fichiers servis par Next, le manifeste et les icônes :
+   * iOS les récupère sans session au moment de l'ajout à l'écran d'accueil,
+   * et la page de connexion en a besoin. Ils ne révèlent rien.
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon.svg|apple-icon.png|icon-192.png|icon-512.png).*)",
   ],
 };

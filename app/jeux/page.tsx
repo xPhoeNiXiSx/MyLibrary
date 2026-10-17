@@ -111,14 +111,19 @@ export default async function GamesPage({ searchParams }: { searchParams: Promis
     filtres: params.filtres === "1" ? "1" : undefined,
   };
 
-  const [games, counts, view, expansions] = await Promise.all([
+  const filteringNow = Boolean(players || duration);
+  const [games, counts, view, expansions, tonight] = await Promise.all([
     listGames({ list, players, duration }),
     gameCounts(),
     getGamesView(),
     list === "envies" ? wantedExpansions() : Promise.resolve([]),
+    // La carte « Ce soir » n'apparaît que sur la collection non filtrée.
+    list === "collection" && !filteringNow
+      ? listGames({ list: "collection", players: "3-4", duration: "60" })
+      : Promise.resolve([]),
   ]);
   const today = parisToday();
-  const filtering = Boolean(players || duration);
+  const filtering = filteringNow;
   const filtersOpen = current.filtres === "1";
 
   return (
@@ -137,21 +142,71 @@ export default async function GamesPage({ searchParams }: { searchParams: Promis
       </div>
 
       <div className="games-tools">
-        <nav className="list-tabs" aria-label="Listes">
+        <nav className="segmented" aria-label="Listes">
           {LISTS.map(({ key, label }) => (
             <Link
               key={key}
               href={hrefWith(current, { liste: key === "collection" ? null : key })}
-              className={list === key ? "chip active" : "chip"}
+              className={list === key ? "active" : undefined}
               aria-current={list === key ? "page" : undefined}
             >
               {label}
-              {counts[key] > 0 ? <span className="chip-count">{counts[key]}</span> : null}
             </Link>
           ))}
         </nav>
-
+        <form action={setGamesViewAction} className="view-toggle" aria-label="Affichage">
+          <input type="hidden" name="back" value={hrefWith(current, {})} />
+          <button
+            type="submit"
+            name="view"
+            value="cartes"
+            className={view === "cartes" ? "active" : ""}
+            aria-pressed={view === "cartes"}
+            aria-label="Vue en cartes"
+            title="Vue en cartes"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                <rect x="4" y="4" width="7" height="7" rx="1.5" />
+                <rect x="13" y="4" width="7" height="7" rx="1.5" />
+                <rect x="4" y="13" width="7" height="7" rx="1.5" />
+                <rect x="13" y="13" width="7" height="7" rx="1.5" />
+              </g>
+            </svg>
+          </button>
+          <button
+            type="submit"
+            name="view"
+            value="liste"
+            className={view === "liste" ? "active" : ""}
+            aria-pressed={view === "liste"}
+            aria-label="Vue en liste"
+            title="Vue en liste"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </form>
       </div>
+
+      {tonight.length > 0 ? (
+        <Link href={hrefWith(current, { joueurs: "3-4", duree: "60", filtres: null })} className="tonight-card">
+          <div className="tonight-text">
+            <span className="badge peach">Ce soir</span>
+            <strong>3 ou 4 joueurs,</strong>
+            <em>moins d&apos;une heure</em>
+            <span className="subtitle">
+              {tonight.length} jeu{tonight.length > 1 ? "x correspondent" : " correspond"}
+            </span>
+          </div>
+          <div className="tonight-stack" aria-hidden="true">
+            {tonight.slice(0, 3).map((game) => (
+              <GameCover key={game.id} url={game.imageUrl} title={game.title} className="game-cover mini" />
+            ))}
+          </div>
+        </Link>
+      ) : null}
 
       <div className="filter-bar">
         <Link
@@ -174,40 +229,6 @@ export default async function GamesPage({ searchParams }: { searchParams: Promis
             {DURATION_LABELS[duration]} ×
           </Link>
         ) : null}
-          <form action={setGamesViewAction} className="view-toggle" aria-label="Affichage">
-            <input type="hidden" name="back" value={hrefWith(current, {})} />
-            <button
-              type="submit"
-              name="view"
-              value="cartes"
-              className={view === "cartes" ? "active" : ""}
-              aria-pressed={view === "cartes"}
-              aria-label="Vue en cartes"
-              title="Vue en cartes"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-                  <rect x="4" y="4" width="7" height="7" rx="1.5" />
-                  <rect x="13" y="4" width="7" height="7" rx="1.5" />
-                  <rect x="4" y="13" width="7" height="7" rx="1.5" />
-                  <rect x="13" y="13" width="7" height="7" rx="1.5" />
-                </g>
-              </svg>
-            </button>
-            <button
-              type="submit"
-              name="view"
-              value="liste"
-              className={view === "liste" ? "active" : ""}
-              aria-pressed={view === "liste"}
-              aria-label="Vue en liste"
-              title="Vue en liste"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
-          </form>
       </div>
 
       {filtersOpen ? (
@@ -264,7 +285,7 @@ export default async function GamesPage({ searchParams }: { searchParams: Promis
                     {tag ? <span className={game.loan ? "tag loan" : "tag"}>{tag}</span> : null}
                   </div>
                   <span className="series-name">{game.title}</span>
-                  <span className="game-info">{infoLine(game, false)}</span>
+                  <GameMeta game={game} />
                 </Link>
               </li>
             );
@@ -316,5 +337,40 @@ export default async function GamesPage({ searchParams }: { searchParams: Promis
         </>
       ) : null}
     </main>
+  );
+}
+
+/** Joueurs et durée, avec leurs pictogrammes : ce qu'on regarde pour choisir. */
+function GameMeta({ game }: { game: Game }) {
+  const players = playersLabel(game.minPlayers, game.maxPlayers);
+  const duration = durationLabel(game.minMinutes, game.maxMinutes);
+  if (!players && !duration) return null;
+  return (
+    <span className="game-meta">
+      {players ? (
+        <span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="9" cy="8" r="3" />
+              <path d="M3.5 19c.8-3 3-4.5 5.5-4.5S13.7 16 14.5 19" />
+              <circle cx="17" cy="9" r="2.4" />
+              <path d="M15.5 14.6c2.3.2 4 1.6 4.8 4.4" />
+            </g>
+          </svg>
+          {players}
+        </span>
+      ) : null}
+      {duration ? (
+        <span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="12" cy="12" r="8" />
+              <path d="M12 7.5V12l3 2" />
+            </g>
+          </svg>
+          {duration}
+        </span>
+      ) : null}
+    </span>
   );
 }

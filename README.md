@@ -102,10 +102,33 @@ ne gardant rien en mémoire d'un appel à l'autre.
 
 ## Design
 
-**Thème sombre uniquement** : pas de variante claire, `:root` déclare
-`color-scheme: dark`. La base visuelle (palette, Inter et Space Grotesk via
-`next/font`) est reprise de MyCards en attendant une identité propre à
-MyLibrary. Tout est piloté par des variables CSS dans `app/globals.css`.
+Direction « Verre doux », maquettée dans Figma (page « C · Verre doux — v2
+équilibrée ») :
+
+- **Thème sombre uniquement** — nuit ardoise `#0b1013`, pas de variante claire,
+  `:root` déclare `color-scheme: dark`.
+- **Deux teintes de sens** — menthe `#5eead4` pour l'action et le possédé,
+  lilas `#c4b5fd` pour ce qui manque (trous, prêts), pêche `#fdba8c` pour les
+  envies.
+- **Verre givré** — cartes en voile clair sur une aurore floue (menthe et lilas
+  côté mangas, lilas et pêche côté jeux), arrondis de 22 à 28 px.
+- **Typographie** — Plus Jakarta Sans pour tout le texte, Instrument Serif en
+  italique réservé aux chiffres et à quelques accents (« Tome *87* », l'emprunteur
+  d'un prêt). Trois tailles de titre seulement.
+- **Une carte forte par écran** — le prochain achat, les trois repères d'une
+  série, « Ce soir », la boîte d'un jeu ; le reste en lignes et grilles
+  régulières sur une grille de 20 px.
+- **Marque** — un livre menthe et un dé lilas posés l'un contre l'autre
+  (`app/brand.tsx`, `app/icon.svg`). Les icônes d'écran d'accueil
+  (`app/apple-icon.png`, `public/icon-*.png`) sont rendues depuis le SVG.
+
+Sans image trouvée, couvertures et boîtes sont dessinées : un dégradé tiré du
+titre (`app/art.ts`), toujours le même pour une même série ou un même jeu.
+
+Les couleurs vivent dans les variables de `app/globals.css`. Les polices
+passent par `next/font` ; leur repli est écrit dans `var(--font-body, …)` et
+pas dans une déclaration de `:root`, qui a la même spécificité que la classe
+posée par `next/font` et pourrait l'écraser.
 
 ## Développement
 

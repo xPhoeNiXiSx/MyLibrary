@@ -7,18 +7,22 @@ import {
   coversFor,
   listSeries,
   progressOf,
+  type Progress,
+  type Series,
 } from "@/lib/series";
 
 import { Cover } from "./cover";
 import { DatabaseErrorScreen, SetupScreen } from "./db-screens";
 import { Masthead } from "./masthead";
+import { ProgressBar } from "./progress-bar";
 import { migrateAction } from "./compte/actions";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Accueil : une carte par série, avec la couverture du prochain tome à
- * acheter — c'est elle qu'on cherche des yeux en rayon.
+ * Accueil des mangas : une carte forte pour le prochain achat — c'est la
+ * couverture qu'on cherche des yeux en rayon — puis les séries en cours et
+ * les séries complètes, en lignes identiques.
  */
 export default async function HomePage() {
   const missing = [
@@ -73,13 +77,10 @@ export default async function HomePage() {
     rows.map(({ item, shown }) => ({ seriesId: item.id, number: shown })),
   );
 
-  // Ce qui reste à acheter d'abord, les séries à jour ensuite.
-  rows.sort(
-    (a, b) =>
-      Number(a.progress.next === null && a.progress.gaps.length === 0) -
-      Number(b.progress.next === null && b.progress.gaps.length === 0),
-  );
-
+  // La carte principale : la première série dont un tome reste à acheter.
+  const hero = rows.find((row) => row.progress.next !== null) ?? null;
+  const ongoing = rows.filter((row) => row !== hero && (row.progress.next !== null || row.progress.gaps.length > 0));
+  const done = rows.filter((row) => row !== hero && !ongoing.includes(row));
   const volumes = rows.reduce((sum, row) => sum + row.progress.ownedCount, 0);
 
   return (
@@ -88,15 +89,13 @@ export default async function HomePage() {
 
       <div className="title-row">
         <div>
-          <h1 className="page-title">Ma bibliothèque</h1>
+          <h1 className="page-title">Mes séries</h1>
           <p className="subtitle">
             {series.length} série{series.length > 1 ? "s" : ""} · {volumes} tome
             {volumes > 1 ? "s" : ""}
           </p>
         </div>
-        <Link href="/series/nouvelle" className="pill-button">
-          + Série
-        </Link>
+        <Link href="/series/nouvelle" className="pill-button">+ Série</Link>
       </div>
 
       {rows.length === 0 ? (
@@ -107,48 +106,95 @@ export default async function HomePage() {
             jusqu&apos;où tu l&apos;as, et le reste se remplit tout seul.
           </p>
         </div>
-      ) : (
-        <>
-          <p className="section-label">À acheter ensuite</p>
-          <ul className="series-list">
-            {rows.map(({ item, progress, shown }) => (
-              <li key={item.id}>
-                <Link href={`/series/${item.id}`} className="series-card">
-                  <Cover url={covers.get(coverKey(item.id, shown))} number={shown} />
-                  <div className="series-card-body">
-                    <div className="series-card-head">
-                      <span className="series-name">{item.title}</span>
-                      <span className="series-count">
-                        {progress.ownedCount}
-                        {progress.total !== null ? `/${progress.total}` : ""}
-                      </span>
-                    </div>
-                    {progress.next !== null ? (
-                      <span className="series-next">Prochain : tome {progress.next}</span>
-                    ) : progress.gaps.length === 0 ? (
-                      <span className="series-done">Série complète</span>
-                    ) : (
-                      <span className="series-done">À jour</span>
-                    )}
-                    {progress.total !== null ? (
-                      <div className="bar" aria-hidden="true">
-                        <div
-                          style={{
-                            width: `${Math.min(100, Math.round((progress.ownedCount / progress.total) * 100))}%`,
-                          }}
-                        />
-                      </div>
-                    ) : null}
-                    {progress.gaps.length > 0 ? (
-                      <span className="series-gaps">Trous : {formatGaps(progress.gaps)}</span>
-                    ) : null}
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      ) : null}
+
+      {hero ? (
+        <Link href={`/series/${hero.item.id}`} className="hero-card">
+          <Cover
+            url={covers.get(coverKey(hero.item.id, hero.shown))}
+            number={hero.shown}
+            title={hero.item.title}
+            className="cover hero-cover"
+          />
+          <div className="hero-body">
+            <span className="badge">Prochain achat</span>
+            <span className="hero-title">{hero.item.title}</span>
+            <span className="hero-volume">
+              Tome <em>{hero.progress.next}</em>
+            </span>
+            <ProgressBar owned={hero.progress.ownedCount} total={hero.progress.total} gaps={hero.progress.gaps} />
+            <span className="series-count">
+              {hero.progress.ownedCount}
+              {hero.progress.total !== null ? ` / ${hero.progress.total}` : ""}
+              {hero.progress.gaps.length > 0
+                ? ` · ${hero.progress.gaps.length} trou${hero.progress.gaps.length > 1 ? "s" : ""}`
+                : ""}
+            </span>
+          </div>
+        </Link>
+      ) : null}
+
+      {ongoing.length > 0 ? (
+        <SeriesSection title="En cours" rows={ongoing} covers={covers} />
+      ) : null}
+      {done.length > 0 ? <SeriesSection title="Complètes" rows={done} covers={covers} /> : null}
     </main>
+  );
+}
+
+type Row = { item: Series; progress: Progress; shown: number };
+
+function SeriesSection({
+  title,
+  rows,
+  covers,
+}: {
+  title: string;
+  rows: Row[];
+  covers: Map<string, string | null>;
+}) {
+  return (
+    <section>
+      <div className="section-head">
+        <h2>{title}</h2>
+        <span>{rows.length}</span>
+      </div>
+      <ul className="series-list">
+        {rows.map(({ item, progress, shown }) => (
+          <li key={item.id}>
+            <Link href={`/series/${item.id}`} className="series-card">
+              <Cover url={covers.get(coverKey(item.id, shown))} number={shown} title={item.title} />
+              <div className="series-card-body">
+                <div className="series-card-head">
+                  <span className="series-name">{item.title}</span>
+                  <span className="series-count">
+                    {progress.ownedCount}
+                    {progress.total !== null ? `/${progress.total}` : ""}
+                  </span>
+                </div>
+                <ProgressBar owned={progress.ownedCount} total={progress.total} gaps={progress.gaps} />
+                <span className="series-line">
+                  {progress.next !== null ? (
+                    <span className="series-next">Prochain : T{progress.next}</span>
+                  ) : progress.gaps.length === 0 ? (
+                    <span className="series-done">
+                      {progress.total ?? progress.ownedCount} / {progress.total ?? progress.ownedCount} · série complète
+                    </span>
+                  ) : (
+                    <span className="series-done">À jour</span>
+                  )}
+                  {progress.gaps.length > 0 ? (
+                    <span className="series-gaps">
+                      {" · "}
+                      {progress.gaps.length > 1 ? "Trous" : "Trou"} : {formatGaps(progress.gaps, 3)}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

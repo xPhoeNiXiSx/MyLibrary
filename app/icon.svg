@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Icône MyLibrary : la marque (livre menthe, dé lilas) sur une pastille nuit.
+     Elle porte son propre fond, lisible sur un onglet clair comme sombre. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#1b2a30"/>
+      <stop offset="1" stop-color="#0b1013"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#99f6e4"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <linearGradient id="lilac" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ddd6fe"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="115" fill="url(#bg)"/>
+  <g transform="translate(96 96) scale(5)">
+    <rect x="6" y="15" width="32" height="40" rx="11" fill="url(#mint)"/>
+    <rect x="9" y="47" width="20" height="3.5" rx="1.75" fill="#062a26" opacity="0.45"/>
+    <rect x="25" y="8" width="33" height="33" rx="11" fill="url(#lilac)"/>
+    <circle cx="35.5" cy="18.5" r="3" fill="#0b1013"/>
+    <circle cx="47.5" cy="30.5" r="3" fill="#0b1013"/>
+  </g>
+</svg>

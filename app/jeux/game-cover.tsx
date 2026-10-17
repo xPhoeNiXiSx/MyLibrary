@@ -1,7 +1,8 @@
+import { gradientFor } from "../art";
+
 /**
- * Visuel d'une boîte de jeu, ou une vignette à l'initiale quand il n'y en a
- * pas. Une boîte n'est pas forcément carrée : l'image est contenue, pas
- * rognée, sur le fond de la vignette.
+ * Visuel d'une boîte de jeu. Une boîte n'est pas forcément carrée : l'image
+ * est contenue, pas rognée. Sans image, une boîte dessinée au nom du jeu.
  */
 export function GameCover({
   url,
@@ -13,19 +14,11 @@ export function GameCover({
   className?: string;
 }) {
   if (url) {
-    return (
-      <img
-        src={url}
-        alt=""
-        className={className}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-      />
-    );
+    return <img src={url} alt="" className={className} loading="lazy" referrerPolicy="no-referrer" />;
   }
   return (
-    <div className={`${className} game-cover-empty`} aria-hidden="true">
-      <span>{title.slice(0, 1).toUpperCase()}</span>
+    <div className={`${className} game-cover-empty`} style={{ background: gradientFor(title) }} aria-hidden="true">
+      <span>{title}</span>
     </div>
   );
 }

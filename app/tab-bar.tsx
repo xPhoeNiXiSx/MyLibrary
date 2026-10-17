@@ -63,8 +63,8 @@ export function TabBar() {
             className={active ? "tab active" : "tab"}
             aria-current={active ? "page" : undefined}
           >
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-              <g fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 {tab.icon}
               </g>
             </svg>

@@ -53,16 +53,8 @@ export default async function SeriesPage({
   const covers = await allCovers(series.id);
   const headerCover = Math.max(progress.highest, 1);
 
-  const meta = [
-    series.author,
-    series.publisher,
-  ].filter(Boolean).join(" · ");
-  const state = [
-    series.status === "finished" ? "Terminée" : series.status === "ongoing" ? "En cours" : null,
-    progress.total !== null
-      ? `${progress.total} tome${progress.total > 1 ? "s" : ""} parus`
-      : "Nombre de tomes inconnu",
-  ].filter(Boolean).join(" · ");
+  const meta = [series.author, series.publisher].filter(Boolean).join(" · ");
+  const status = series.status === "finished" ? "Terminée" : series.status === "ongoing" ? "En cours" : null;
 
   return (
     <main className="page narrow">
@@ -73,15 +65,20 @@ export default async function SeriesPage({
         <Cover
           url={covers.get(headerCover) ?? covers.get(1)}
           number={headerCover}
+          title={series.title}
           className="cover large"
         />
-        <div>
+        <div className="series-header-text">
           <h1 className="page-title">{series.title}</h1>
           {meta ? <p className="subtitle">{meta}</p> : null}
-          <p className="subtitle">
-            {state}
-            {series.volumesManual !== null ? " (corrigé à la main)" : ""}
-          </p>
+          <div className="chip-row">
+            {status ? <span className="badge">{status}</span> : null}
+            <span className="badge neutral">
+              {progress.total !== null
+                ? `${progress.total} tome${progress.total > 1 ? "s" : ""}${series.volumesManual !== null ? " (corrigé)" : ""}`
+                : "Tomes parus inconnus"}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -102,9 +99,11 @@ export default async function SeriesPage({
 
       <VolumeGrid
         seriesId={series.id}
+        title={series.title}
         owned={series.owned}
         size={gridSize(progress)}
         total={progress.total}
+        covers={Object.fromEntries(covers)}
       />
 
       <details className="panel settings">

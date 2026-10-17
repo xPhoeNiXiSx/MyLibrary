@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import {
   ageLabel,
   daysBetween,
-  durationLabel,
+  rangeLabel,
   longDate,
   parisToday,
   playersLabel,
@@ -31,6 +31,30 @@ import { GameFields } from "../game-fields";
 
 export const dynamic = "force-dynamic";
 
+const ICONS = {
+  people: (
+    <>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3.5 19c.8-3 3-4.5 5.5-4.5S13.7 16 14.5 19" />
+      <circle cx="17" cy="9" r="2.4" />
+      <path d="M15.5 14.6c2.3.2 4 1.6 4.8 4.4" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
+  cake: (
+    <>
+      <path d="M5 20h14v-7H5z" />
+      <path d="M5 15.5c2 1.3 4.7 1.3 7 0s5-1.3 7 0" />
+      <path d="M12 13V9" />
+    </>
+  ),
+};
+
 export default async function GamePage({
   params,
   searchParams,
@@ -48,25 +72,25 @@ export default async function GamePage({
   const expansionNames = new Map(game.expansions.map((e) => [e.id, e.title]));
   const meta = [game.designer, game.publisher, game.year].filter(Boolean).join(" · ");
   const stats = [
-    ["Joueurs", playersLabel(game.minPlayers, game.maxPlayers)],
-    ["Durée", durationLabel(game.minMinutes, game.maxMinutes)],
-    ["Âge", ageLabel(game.minAge)],
+    ["joueurs", playersLabel(game.minPlayers, game.maxPlayers), "people"],
+    ["minutes", rangeLabel(game.minMinutes, game.maxMinutes), "clock"],
+    ["ans", ageLabel(game.minAge), "cake"],
   ] as const;
 
+  const lentDays = game.loan ? daysBetween(game.loan.lentOn, today) : 0;
+
   return (
-    <main className="page narrow">
+    <main className="page narrow games">
       <Masthead />
       <Link href={game.status === "wanted" ? "/jeux?liste=envies" : "/jeux"} className="back-link">
         ‹ Mes jeux
       </Link>
 
-      <div className="series-header">
+      <div className="game-hero">
         <GameCover url={game.imageUrl} title={game.title} className="game-cover large" />
-        <div>
-          <h1 className="page-title">{game.title}</h1>
-          {meta ? <p className="subtitle">{meta}</p> : null}
-          {game.status === "wanted" ? <p className="subtitle accent-text">Dans mes envies</p> : null}
-        </div>
+        <h1 className="page-title">{game.title}</h1>
+        {meta ? <p className="subtitle">{meta}</p> : null}
+        {game.status === "wanted" ? <span className="badge peach">Dans mes envies</span> : null}
       </div>
 
       {existe ? <p className="success" role="status">Ce jeu était déjà dans ta liste : le voici.</p> : null}
@@ -81,92 +105,96 @@ export default async function GamePage({
       ) : null}
 
       <div className="stat-tiles three">
-        {stats.map(([label, value]) => (
+        {stats.map(([label, value, icon]) => (
           <div className="stat-tile" key={label}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="stat-icon">
+              <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                {ICONS[icon]}
+              </g>
+            </svg>
+            <b>{value ?? "—"}</b>
             <span>{label}</span>
-            <strong>{value ?? "—"}</strong>
           </div>
         ))}
       </div>
 
       {/* Extensions */}
-      <section className="panel game-panel" id="extensions">
-        <h2>
-          Extensions
-          {game.expansions.length > 0 ? ` · ${owned.length}/${game.expansions.length}` : ""}
-        </h2>
-        {game.expansions.length > 0 ? (
-          <ul className="expansion-list">
-            {game.expansions.map((e) => (
-              <li key={e.id}>
-                <form action={toggleExpansionAction}>
-                  <input type="hidden" name="gameId" value={game.id} />
-                  <input type="hidden" name="id" value={e.id} />
-                  <input type="hidden" name="status" value={e.status === "owned" ? "wanted" : "owned"} />
-                  <button
-                    type="submit"
-                    className={e.status === "owned" ? "check on" : "check"}
-                    aria-pressed={e.status === "owned"}
-                    aria-label={`${e.title} : ${e.status === "owned" ? "possédée, toucher pour la remettre en envie" : "en envie, toucher pour la cocher"}`}
-                  >
-                    <span className="box">
-                      {e.status === "owned" ? (
-                        <svg viewBox="0 0 22 22" width="22" height="22" aria-hidden="true">
-                          <path d="M6 11.3 9.4 14.5 16 7.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      ) : null}
-                    </span>
-                  </button>
-                </form>
-                <div className="expansion-text">
-                  <span className={e.status === "owned" ? "" : "muted"}>{e.title}</span>
-                  <small className={e.status === "owned" ? "positive-text" : "accent-text"}>
-                    {e.status === "owned" ? "Possédée" : "Dans mes envies"}
-                  </small>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="hint">Aucune extension enregistrée.</p>
-        )}
-        <form action={addExpansionAction} className="inline-form">
-          <input type="hidden" name="gameId" value={game.id} />
-          <input name="title" placeholder="Ajouter une extension" aria-label="Nom de l'extension" required />
-          <select name="status" aria-label="Possédée ou voulue" defaultValue="owned">
-            <option value="owned">Je l&apos;ai</option>
-            <option value="wanted">Envie</option>
-          </select>
-          <SubmitButton pending="…" className="secondary">Ajouter</SubmitButton>
-        </form>
-        {game.expansions.length > 0 ? (
-          <p className="hint">Toucher la case coche ou décoche l&apos;extension.</p>
-        ) : null}
+      <section id="extensions">
+        <div className="section-head">
+          <h2>Extensions</h2>
+          {game.expansions.length > 0 ? <span>{owned.length} sur {game.expansions.length}</span> : null}
+        </div>
+        <div className="panel list-card">
+          {game.expansions.length > 0 ? (
+            <ul className="expansion-list">
+              {game.expansions.map((e) => (
+                <li key={e.id}>
+                  <form action={toggleExpansionAction}>
+                    <input type="hidden" name="gameId" value={game.id} />
+                    <input type="hidden" name="id" value={e.id} />
+                    <input type="hidden" name="status" value={e.status === "owned" ? "wanted" : "owned"} />
+                    <button
+                      type="submit"
+                      className={e.status === "owned" ? "check on" : "check"}
+                      aria-pressed={e.status === "owned"}
+                      aria-label={`${e.title} : ${e.status === "owned" ? "possédée, toucher pour la remettre en envie" : "en envie, toucher pour la cocher"}`}
+                    >
+                      <span className="box">
+                        {e.status === "owned" ? (
+                          <svg viewBox="0 0 22 22" width="18" height="18" aria-hidden="true">
+                            <path d="M6 11.3 9.4 14.5 16 7.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        ) : null}
+                      </span>
+                    </button>
+                  </form>
+                  <div className="expansion-text">
+                    <span className={e.status === "owned" ? "" : "muted"}>{e.title}</span>
+                    <small className={e.status === "owned" ? "accent-text" : "peach-text"}>
+                      {e.status === "owned" ? "Possédée" : "Dans mes envies"}
+                    </small>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="hint">Aucune extension enregistrée.</p>
+          )}
+          <form action={addExpansionAction} className="inline-form">
+            <input type="hidden" name="gameId" value={game.id} />
+            <input name="title" placeholder="Ajouter une extension" aria-label="Nom de l'extension" required />
+            <select name="status" aria-label="Possédée ou voulue" defaultValue="owned">
+              <option value="owned">Je l&apos;ai</option>
+              <option value="wanted">Envie</option>
+            </select>
+            <SubmitButton pending="…" className="secondary">Ajouter</SubmitButton>
+          </form>
+        </div>
       </section>
 
-      {/* Prêt */}
+      {/* Prêt : un ticket quand le jeu est sorti, un champ sinon */}
       {game.status === "owned" ? (
-        <section className={game.loan ? "panel game-panel loan" : "panel game-panel"} id="pret">
+        <section id="pret">
           {game.loan ? (
-            <>
-              <div className="panel-head">
-                <h2>Prêté à {game.loan.borrower}</h2>
-                <form action={returnGameAction}>
-                  <input type="hidden" name="gameId" value={game.id} />
-                  <SubmitButton pending="…" className="secondary">Il est revenu</SubmitButton>
-                </form>
+            <div className="loan-ticket">
+              <div>
+                <span className="ticket-label">Prêté à</span>
+                <strong>{game.loan.borrower}</strong>
+                <span>
+                  depuis le {longDate(game.loan.lentOn)}
+                  {lentDays > 0 ? ` · ${lentDays} jour${lentDays > 1 ? "s" : ""}` : " · aujourd'hui"}
+                </span>
               </div>
-              <p className="loan-since">
-                Depuis le {longDate(game.loan.lentOn)}
-                {(() => {
-                  const days = daysBetween(game.loan.lentOn, today);
-                  return days > 0 ? ` · ${days} jour${days > 1 ? "s" : ""}` : " · aujourd'hui";
-                })()}
-              </p>
-            </>
+              <form action={returnGameAction}>
+                <input type="hidden" name="gameId" value={game.id} />
+                <SubmitButton pending="…" className="ticket-button">Il est revenu</SubmitButton>
+              </form>
+            </div>
           ) : (
             <>
-              <h2>Prêt</h2>
+              <div className="section-head">
+                <h2>Prêt</h2>
+              </div>
               <form action={lendGameAction} className="inline-form single">
                 <input type="hidden" name="gameId" value={game.id} />
                 <input name="borrower" placeholder="Prêter à…" aria-label="Prêter à" required />
@@ -179,19 +207,15 @@ export default async function GamePage({
 
       {/* Parties */}
       {game.status === "owned" ? (
-        <section className="panel game-panel" id="parties">
-          <div className="panel-head">
-            <h2>
-              {game.playCount} partie{game.playCount > 1 ? "s" : ""}
-            </h2>
-          </div>
-          {game.lastPlayed ? (
-            <p className="hint">Dernière : le {longDate(game.lastPlayed)}</p>
-          ) : null}
-
+        <section id="parties">
           <details className="play-form">
-            <summary className="pill-button small">+ Partie</summary>
-            <form action={addPlayAction} className="form">
+            <summary className="section-head">
+              <h2>
+                Parties{game.playCount > 0 ? ` · ${game.playCount}` : ""}
+              </h2>
+              <span className="pill-button small">+ Partie</span>
+            </summary>
+            <form action={addPlayAction} className="panel form">
               <input type="hidden" name="gameId" value={game.id} />
               <div className="row">
                 <label className="grow">
@@ -228,7 +252,7 @@ export default async function GamePage({
           </details>
 
           {game.plays.length > 0 ? (
-            <ul className="play-list">
+            <ul className="panel list-card play-list">
               {game.plays.map((p) => {
                 const used = p.expansions.map((x) => expansionNames.get(x)).filter(Boolean);
                 const line = [
@@ -240,9 +264,15 @@ export default async function GamePage({
                     <strong className="play-date">{shortDate(p.playedOn)}</strong>
                     <div className="play-text">
                       <span>{line || "Partie"}</span>
-                      {p.winner || p.notes ? (
-                        <small>{[p.winner ? `Gagné par ${p.winner}` : null, p.notes].filter(Boolean).join(" · ")}</small>
+                      {p.winner ? (
+                        <small className="winner">
+                          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                            <path d="M4 17h16l1-10-5 4-4-6-4 6-5-4z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                          </svg>
+                          {p.winner}
+                        </small>
                       ) : null}
+                      {p.notes ? <small>{p.notes}</small> : null}
                     </div>
                     <form action={deletePlayAction}>
                       <input type="hidden" name="gameId" value={game.id} />
@@ -255,7 +285,9 @@ export default async function GamePage({
                 );
               })}
             </ul>
-          ) : null}
+          ) : (
+            <p className="hint">Aucune partie enregistrée.</p>
+          )}
         </section>
       ) : null}
 

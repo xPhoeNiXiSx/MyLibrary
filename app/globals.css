@@ -1,55 +1,59 @@
 /* ==========================================================================
-   MyLibrary — système visuel
-   Base reprise de MyCards, en attendant une identité propre. Thème sombre
-   unique ; l'accent terracotta ne sert qu'aux repères actifs et à la marque.
+   MyLibrary — « Verre doux »
+   Nuit ardoise, menthe et lilas. Des cartes en verre givré sur une aurore
+   discrète, des arrondis généreux, une seule famille de texte (Plus Jakarta
+   Sans) et un italique éditorial (Instrument Serif) réservé aux chiffres.
+   Thème sombre unique : pas de variante claire, pas de `prefers-color-scheme`.
    ========================================================================== */
 
-/* Thème unique : sombre. L'application n'est utilisée que dans ce mode, donc
-   pas de variante claire à maintenir ni de `prefers-color-scheme` à suivre. */
 :root {
   color-scheme: dark;
 
-  /* Surfaces, de l'arrière-plan au premier plan. */
-  --bg: #131210;
-  --bg-sunken: #0e0d0c;
-  --surface: #1c1a18;
-  --surface-hover: #232120;
+  /* Fonds */
+  --bg: #0b1013;
+  --bg-raise: #10181c;
 
-  /* Texte, du plus appuyé au plus discret. */
-  --fg: #f1ede7;
-  --fg-muted: #a39c92;
-  --fg-faint: #7c756c;
+  /* Verre : un voile clair sur le fond, plus ou moins appuyé. */
+  --glass: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  --glass-flat: rgba(255, 255, 255, 0.05);
+  --glass-hover: rgba(255, 255, 255, 0.09);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
 
-  --border: #2e2b27;
-  --border-strong: #3d3833;
+  /* Texte */
+  --fg: #f2f7f7;
+  --fg-muted: #9db0b5;
+  /* Assez clair pour 4,5:1 sur le fond, même en petit. */
+  --fg-faint: #71868b;
 
-  --accent: #e08a68;
-  --accent-soft: #34251e;
+  /* Menthe : la couleur d'action (boutons, onglet actif, possédé). */
+  --accent: #5eead4;
+  --accent-strong: #2dd4bf;
+  --accent-soft: rgba(94, 234, 212, 0.14);
+  --on-accent: #062a26;
 
-  --positive: #6cc08b;
-  --positive-soft: #1a2b22;
-  --negative: #ef8b7d;
-  --info: #8fb3e0;
-  --info-soft: #1c2633;
-  --negative-soft: #2f1e1b;
+  /* Lilas : ce qui manque (trous, prêts). Pêche : ce qu'on veut (envies). */
+  --lilac: #c4b5fd;
+  --lilac-strong: #a78bfa;
+  --lilac-soft: rgba(196, 181, 253, 0.14);
+  --on-lilac: #1a1433;
+  --peach: #fdba8c;
+  --peach-soft: rgba(253, 186, 140, 0.16);
 
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 20px;
+  --positive: var(--accent);
+  --negative: #fda4af;
+  --negative-soft: rgba(253, 164, 175, 0.12);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.36);
-  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.5);
+  --radius-sm: 12px;
+  --radius: 22px;
+  --radius-lg: 28px;
 
-  /* Repli défini ici plutôt que dans la seule pile : `font-family` construite
-     sur une variable absente est invalide *en entier*, et la page retombe en
-     serif. next/font surcharge ces deux valeurs sur <html>. */
-  --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-body);
-
-  --font-body-stack: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display-stack: var(--font-display), var(--font-body), ui-sans-serif,
-    system-ui, sans-serif;
+  /* next/font pose --font-body et --font-serif sur <html>. Le repli vit dans
+     `var()` et pas dans une déclaration de :root, qui aurait la même
+     spécificité que la classe de next/font et pourrait l'écraser. */
+  --font-body-stack: var(--font-body, ui-sans-serif), ui-sans-serif, system-ui, sans-serif;
+  --font-display-stack: var(--font-body-stack);
+  --font-serif-stack: var(--font-serif, ui-serif), ui-serif, Georgia, serif;
 }
 
 *,
@@ -65,6 +69,7 @@ body {
 }
 
 body {
+  min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-body-stack);
@@ -74,12 +79,32 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* L'aurore : deux halos flous en haut de l'écran, fixes pendant le défilement.
+   Menthe et lilas côté mangas, lilas et pêche côté jeux. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: 520px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 48% at 12% 6%, rgba(45, 212, 191, 0.26), transparent 70%),
+    radial-gradient(40% 44% at 88% 0%, rgba(167, 139, 250, 0.24), transparent 70%);
+}
+
+body:has(.games)::before {
+  background:
+    radial-gradient(42% 48% at 88% 4%, rgba(167, 139, 250, 0.26), transparent 70%),
+    radial-gradient(40% 44% at 8% 16%, rgba(253, 186, 140, 0.14), transparent 70%);
+}
+
 h1,
 h2,
 h3 {
   font-family: var(--font-display-stack);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   line-height: 1.15;
   margin: 0;
 }
@@ -88,149 +113,348 @@ a {
   color: inherit;
 }
 
+em {
+  font-family: var(--font-serif-stack);
+  font-style: italic;
+  font-weight: 400;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 /* --- Ossature de page -------------------------------------------------- */
 
 .page {
+  position: relative;
+  z-index: 1;
   max-width: 1160px;
   margin: 0 auto;
-  padding: 0 16px calc(104px + env(safe-area-inset-bottom, 0px));
+  padding: 0 20px calc(120px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .page.narrow {
   max-width: 560px;
 }
 
-/* Collant en haut : la marque sert de retour à l'accueil. Le fond est
-   opaque, sinon le contenu défilerait en transparence sous l'en-tête. */
+.page > section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .masthead {
-  position: sticky;
-  top: 0;
-  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: calc(22px + env(safe-area-inset-top, 0px)) 0 14px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 0 0;
 }
 
 .wordmark {
-  font-family: var(--font-display-stack);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 800;
   font-size: 1.0625rem;
-  font-weight: 700;
   letter-spacing: -0.03em;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.wordmark a {
   text-decoration: none;
+}
+
+.avatar {
   display: flex;
   align-items: center;
-  gap: 9px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--lilac), var(--accent));
+  color: var(--on-accent);
 }
 
-/* Le logotype est un SVG en `currentColor` : la teinte se règle ici, et
-   nulle part ailleurs. Le texte clair le rend lisible sur le fond sombre. */
-.wordmark svg {
-  color: var(--fg);
-  height: 22px;
-  width: auto;
-  flex: none;
-  display: block;
-}
-
-.masthead p {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--fg-muted);
-}
-
-/* Le titre de l'écran, juste sous la marque. C'est lui le h1 : le logotype
-   est une marque, pas le sujet de la page. */
 .page-title {
-  margin: 22px 0 0;
-  font-size: clamp(1.5rem, 6.5vw, 1.875rem);
+  font-size: 1.875rem;
   text-wrap: balance;
 }
 
-/* Lien de retour, à droite de la marque. */
-.back {
+.subtitle {
+  margin: 4px 0 0;
   font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--fg-muted);
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.back-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 14px 0 10px;
+  margin-bottom: -8px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-decoration: none;
-  white-space: nowrap;
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
 }
 
-.back:hover {
-  color: var(--fg);
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
-.section-title {
-  margin: 36px 0 14px;
+.section-head h2 {
   font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-/* --- Panneaux et messages ---------------------------------------------- */
+.section-head > span:not(.pill-button) {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.section-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+/* --- Verre --------------------------------------------------------------- */
+
+.panel,
+.series-card,
+.hero-card,
+.stat-tile,
+.search-result,
+.tonight-card,
+.segmented,
+.view-toggle,
+.filter-button,
+.chip {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
 
 .panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  padding: 22px;
-  margin-top: 22px;
+  padding: 20px;
 }
 
 .panel h2 {
   font-size: 1.0625rem;
-  margin-bottom: 8px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.list-card {
+  padding: 6px 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .hint {
-  color: var(--fg-muted);
   font-size: 0.875rem;
-  line-height: 1.6;
-  margin: 0 0 4px;
+  color: var(--fg-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.success,
+.error {
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.success {
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .error {
   color: var(--negative);
   background: var(--negative-soft);
-  border-radius: var(--radius-sm);
-  padding: 9px 12px;
-  font-size: 0.875rem;
-  margin: 0;
 }
 
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.8125em;
-  background: var(--bg-sunken);
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
   padding: 2px 6px;
 }
 
-/* --- Formulaires -------------------------------------------------------- */
+.accent-text {
+  color: var(--accent);
+}
+
+.lilac-text {
+  color: var(--lilac);
+}
+
+.peach-text {
+  color: var(--peach);
+}
+
+.positive-text {
+  color: var(--positive);
+}
+
+/* --- Pastilles ------------------------------------------------------------ */
+
+.badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge.neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+}
+
+.badge.peach {
+  background: var(--peach-soft);
+  color: var(--peach);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  color: var(--fg);
+}
+
+.chip.active {
+  background: var(--accent-soft);
+  border-color: rgba(94, 234, 212, 0.5);
+  color: var(--accent);
+}
+
+/* --- Boutons ------------------------------------------------------------- */
+
+.pill-button,
+button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-body-stack);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.pill-button {
+  flex: none;
+}
+
+button[type="submit"] {
+  align-self: flex-start;
+}
+
+.pill-button:hover,
+button[type="submit"]:hover {
+  opacity: 0.9;
+}
+
+.pill-button:active,
+button[type="submit"]:active {
+  transform: scale(0.98);
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.pill-button.small {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 0.8125rem;
+}
+
+button[type="submit"].secondary {
+  background: var(--glass-flat);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+}
+
+button[type="submit"].danger {
+  background: var(--negative-soft);
+  color: var(--negative);
+}
+
+/* --- Formulaires ---------------------------------------------------------- */
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
 .form .row {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -239,112 +463,71 @@ code {
   flex-direction: column;
   gap: 6px;
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--fg-muted);
   min-width: 0;
 }
 
-/* Le dimensionnement ne vaut que dans une ligne. `.form` étant une colonne,
-   l'appliquer à tous les champs transformerait la base flex en hauteur
-   imposée et creuserait des blancs sous les champs pleine largeur. */
+/* Le dimensionnement ne vaut que dans une ligne : appliqué à tous les champs
+   d'une colonne, il creuserait des blancs sous les champs pleine largeur. */
 .form .row > label {
-  flex: 1 1 180px;
+  flex: 1 1 140px;
 }
 
 .form .row > label.grow {
-  flex: 3 1 240px;
+  flex: 3 1 200px;
 }
 
 .form .row > label.narrow {
-  flex: 0 1 158px;
-}
-
-.form .row > label.tiny {
-  flex: 0 1 84px;
+  flex: 0 1 120px;
 }
 
 .form small {
   font-size: 0.75rem;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--fg-faint);
 }
 
 .form input,
-.form select {
+.form select,
+.inline-form input,
+.inline-form select {
   font: inherit;
-  /* 16 px : voir `.filter input`. Un champ plus petit fait zoomer iOS. */
+  /* 16 px : en dessous, iOS zoome à la mise au point. */
   font-size: 1rem;
-  /* Aucun champ ne dépasse son conteneur, quelle que soit sa largeur
-     intrinsèque. */
-  max-width: 100%;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
   width: 100%;
+  max-width: 100%;
   min-width: 0;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
+  padding: 11px 14px;
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  transition: border-color 0.15s ease;
 }
 
-.form input::placeholder {
+.form input::placeholder,
+.inline-form input::placeholder {
   color: var(--fg-faint);
 }
 
 .form input:hover,
-.form select:hover {
-  border-color: var(--border-strong);
+.form select:hover,
+.inline-form input:hover {
+  border-color: rgba(255, 255, 255, 0.26);
 }
 
-button[type="submit"] {
-  font-family: var(--font-display-stack);
-  font-weight: 600;
-  font-size: 0.9375rem;
-  letter-spacing: -0.01em;
-  color: var(--bg);
-  background: var(--fg);
-  border: 0;
-  border-radius: var(--radius-sm);
-  padding: 11px 22px;
-  cursor: pointer;
-  align-self: flex-start;
-  transition: opacity 0.15s ease;
-}
-
-button[type="submit"]:hover {
-  opacity: 0.88;
-}
-
-button[type="submit"]:disabled {
-  opacity: 0.5;
-  cursor: progress;
-}
-
-.success {
-  color: var(--positive);
-  background: var(--positive-soft);
-  border-radius: var(--radius-sm);
-  padding: 9px 12px;
-  font-size: 0.875rem;
-  margin: 0;
-}
-
-.form input[type="date"],
-.form input[type="time"] {
+.form input[type="date"] {
   -webkit-appearance: none;
   appearance: none;
   min-width: 0;
-  max-width: 100%;
   text-align: left;
 }
 
-/* Le champ retrouve son indicateur de calendrier, que `appearance: none`
-   masque sur certaines versions. */
 .form input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: 0.55;
+  opacity: 0.6;
+  filter: invert(1);
   cursor: pointer;
 }
 
@@ -360,10 +543,11 @@ button[type="submit"]:disabled {
 }
 
 .check-row:hover {
-  background: var(--surface-hover);
+  background: var(--glass-hover);
 }
 
-.check-row input[type="checkbox"] {
+.check-row input[type="checkbox"],
+.check-row input[type="radio"] {
   width: 18px;
   height: 18px;
   margin-top: 2px;
@@ -383,115 +567,165 @@ button[type="submit"]:disabled {
   color: var(--fg-faint);
 }
 
-/* `.form label` empile ses enfants en colonne : la case reste à côté. */
 .form label.check-row {
   flex-direction: row;
   font-size: 0.9375rem;
   color: var(--fg);
 }
 
-
-/* --- Accueil provisoire -------------------------------------------------- */
-
-.masthead nav a {
-  font-size: 0.875rem;
-  color: var(--fg-muted);
-  text-decoration: none;
-}
-
-.masthead nav a:hover {
-  color: var(--fg);
-}
-
-/* --- Titres d'écran ------------------------------------------------------ */
-
-.title-row {
+.check-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.subtitle {
-  margin: 4px 0 0;
+.check-group legend {
   font-size: 0.8125rem;
-  color: var(--fg-muted);
-}
-
-.section-label {
-  margin: 28px 0 10px;
-  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
-
-.back-link {
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 0.875rem;
   color: var(--fg-muted);
-  text-decoration: none;
+  margin-bottom: 6px;
+  padding: 0;
 }
 
-.back-link:hover {
-  color: var(--fg);
-}
-
-.back-link + .page-title,
-.back-link + .series-header {
-  margin-top: 10px;
-}
-
-/* Action principale d'un écran : l'accent, réservé aux repères actifs. */
-.pill-button {
-  flex: none;
-  display: inline-flex;
+/* Le champ d'abord, sur toute la largeur ; le choix et le bouton dessous. */
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #1a0f0a;
-  font-family: var(--font-display-stack);
-  font-weight: 600;
-  font-size: 0.9375rem;
-  text-decoration: none;
+  padding: 12px 0;
 }
 
-.pill-button:hover {
-  opacity: 0.9;
+.inline-form input {
+  flex: 1 1 100%;
 }
 
-/* --- Couvertures --------------------------------------------------------- */
+.inline-form select {
+  flex: none;
+  width: auto;
+}
+
+.inline-form button[type="submit"] {
+  flex: none;
+  align-self: auto;
+}
+
+/* Champ et bouton seuls : ils tiennent sur une ligne. */
+.inline-form.single {
+  padding: 0;
+}
+
+.inline-form.single input {
+  flex: 1 1 0;
+}
+
+/* --- Couvertures de manga -------------------------------------------------- */
 
 .cover {
-  width: 64px;
-  aspect-ratio: 2 / 3;
+  display: block;
   flex: none;
-  border-radius: 6px;
+  width: 52px;
+  aspect-ratio: 2 / 3;
+  border-radius: 7px;
   object-fit: cover;
-  background: var(--surface-hover);
-  border: 1px solid var(--border-strong);
+  background: var(--bg-raise);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
 .cover.large {
-  width: 88px;
+  width: 120px;
+  border-radius: 14px;
 }
 
-/* Aucune source n'a d'image : le numéro tient lieu de couverture. */
-.cover-empty {
-  display: flex;
-  align-items: flex-end;
-  padding: 6px;
-  font-family: var(--font-display-stack);
+.cover.hero-cover {
+  width: 96px;
+  border-radius: 12px;
+}
+
+/* Sans image : le dégradé de la série, le numéro en italique, le titre. */
+.cover-art {
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+.cover-art::before {
+  content: "";
+  position: absolute;
+  width: 120%;
+  aspect-ratio: 1;
+  top: -50%;
+  left: 30%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.cover-num {
+  position: absolute;
+  left: 10%;
+  top: 38%;
+  font-family: var(--font-serif-stack);
+  font-style: italic;
+  font-size: 50cqi;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.cover-title {
+  position: absolute;
+  left: 10%;
+  right: 8%;
+  bottom: 7%;
+  font-size: max(6px, 7.5cqi);
   font-weight: 700;
-  font-size: 1.125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Mangas : accueil ------------------------------------------------------ */
+
+.hero-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+}
+
+.hero-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-volume {
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--fg-muted);
 }
 
-/* --- Accueil : les séries ------------------------------------------------ */
+.hero-volume em {
+  font-size: 2.125rem;
+  line-height: 1;
+  color: var(--fg);
+  margin-left: 4px;
+}
 
 .series-list {
   list-style: none;
@@ -506,16 +740,15 @@ button[type="submit"]:disabled {
   display: flex;
   gap: 14px;
   align-items: center;
-  padding: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  padding: 12px 14px 12px 12px;
   border-radius: var(--radius);
   text-decoration: none;
   transition: background 0.15s ease;
 }
 
-.series-card:hover {
-  background: var(--surface-hover);
+.series-card:hover,
+.hero-card:hover {
+  background: var(--glass-hover);
 }
 
 .series-card-body {
@@ -534,198 +767,217 @@ button[type="submit"]:disabled {
 }
 
 .series-name {
-  font-family: var(--font-display-stack);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
   overflow-wrap: anywhere;
 }
 
 .series-count {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--fg-muted);
   white-space: nowrap;
 }
 
-.series-next {
+.series-line {
+  font-size: 0.75rem;
   font-weight: 600;
-  font-size: 0.9375rem;
+}
+
+.series-next,
+.series-done {
   color: var(--accent);
 }
 
-.series-done {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--positive);
-}
-
 .series-gaps {
-  font-size: 0.75rem;
-  color: var(--fg-muted);
+  color: var(--lilac);
+  font-weight: 500;
 }
 
+/* Barre d'avancement, menthe vers lilas, encoches aux trous. */
 .bar {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--border);
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
-.bar > div {
+.bar-fill {
   height: 100%;
-  background: var(--accent);
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--lilac));
 }
 
-/* --- Série : en-tête et repères ------------------------------------------ */
+.bar-gap {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--bg);
+}
+
+/* --- Mangas : une série ---------------------------------------------------- */
 
 .series-header {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   align-items: flex-end;
-  margin-top: 16px;
 }
 
-.series-header .page-title {
-  margin: 0;
-}
-
-.series-header > div {
+.series-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
 }
 
-.owned-count {
-  margin: 18px 0 0;
-  font-family: var(--font-display-stack);
-  font-weight: 600;
+.series-header-text .subtitle {
+  margin: 0;
 }
 
 .stat-tiles {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 12px;
+}
+
+.stat-tiles.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .stat-tile {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   padding: 14px;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  border-radius: 20px;
   min-width: 0;
+}
+
+.stat-tile strong {
+  font-family: var(--font-serif-stack);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 2rem;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.stat-tile b {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: 4px;
 }
 
 .stat-tile span {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--fg-muted);
 }
 
-.stat-tile strong {
-  font-family: var(--font-display-stack);
-  font-size: 1.25rem;
-  overflow-wrap: anywhere;
+.stat-icon {
+  color: var(--peach);
 }
 
-.stat-tile.accent {
-  background: var(--accent-soft);
-  border-color: #5a3a2c;
+.to-buy {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.stat-tile.accent span {
+.to-buy li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.to-buy .to-buy-cover {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.to-buy li.gap .to-buy-cover {
+  opacity: 0.6;
+  outline: 2px dashed var(--lilac);
+  outline-offset: -2px;
+}
+
+.to-buy li.next .to-buy-cover {
+  box-shadow: 0 10px 30px rgba(45, 212, 191, 0.35);
+}
+
+.to-buy li > strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.to-buy li > span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--lilac);
+}
+
+.to-buy li.next > span {
   color: var(--accent);
 }
 
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 22px;
-  font-size: 0.75rem;
-  color: var(--fg-muted);
-}
-
-.legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  box-sizing: border-box;
-}
-
-.swatch.owned {
-  background: var(--border-strong);
-}
-
-.swatch.gap {
-  border: 2px solid var(--accent);
-}
-
-.swatch.later {
-  border: 1px dashed var(--fg-faint);
-}
-
-.legend + .hint {
-  margin: 6px 0 0;
-  font-size: 0.75rem;
-  color: var(--fg-faint);
-}
-
-/* --- Série : grille des tomes --------------------------------------------- */
-
 .volume-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 6px;
-  margin-top: 12px;
 }
 
 .volume {
-  height: 46px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-display-stack);
-  font-size: 0.875rem;
+  height: 40px;
+  border-radius: 10px;
+  font-family: var(--font-body-stack);
+  font-size: 0.8125rem;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
 }
 
 .volume.owned {
   border: 0;
-  background: var(--border-strong);
+  background: var(--accent-soft);
   color: var(--fg);
   font-weight: 600;
 }
 
 .volume.gap {
-  border: 2px solid var(--accent);
-  background: var(--surface);
-  color: var(--accent);
+  border: 1.5px solid var(--lilac);
+  background: var(--lilac-soft);
+  color: var(--lilac);
   font-weight: 700;
 }
 
+.volume.next {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(45, 212, 191, 0.45);
+}
+
 .volume.later {
-  border: 1px dashed #4a453f;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
   background: transparent;
   color: var(--fg-faint);
   font-weight: 500;
 }
 
-/* --- Série : réglages ---------------------------------------------------- */
-
-.settings {
-  margin-top: 32px;
-}
+/* --- Réglages repliés ------------------------------------------------------ */
 
 .settings summary {
   cursor: pointer;
-  font-family: var(--font-display-stack);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .settings .form {
@@ -737,22 +989,19 @@ button[type="submit"]:disabled {
   border-top: 1px solid var(--border);
 }
 
-button[type="submit"].secondary {
-  background: transparent;
-  color: var(--fg);
-  border: 1px solid var(--border-strong);
+.remove-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
 }
 
-button[type="submit"].danger {
-  background: var(--negative-soft);
-  color: var(--negative);
-}
-
-/* --- Ajout d'une série : résultats de recherche --------------------------- */
+/* --- Recherche (ajout) ----------------------------------------------------- */
 
 .search-results {
   list-style: none;
-  margin: 16px 0 0;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -765,13 +1014,11 @@ button[type="submit"].danger {
   align-items: center;
   padding: 10px;
   border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
   text-decoration: none;
 }
 
 .search-result:hover {
-  background: var(--surface-hover);
+  background: var(--glass-hover);
 }
 
 .search-result .cover {
@@ -788,265 +1035,6 @@ button[type="submit"].danger {
   margin: 2px 0 0;
 }
 
-.page > .success,
-.page > .error {
-  margin-top: 16px;
-}
-
-.search-results + .hint,
-.panel + .hint,
-.panel + .error {
-  margin-top: 16px;
-}
-
-/* --- Barre d'onglets ------------------------------------------------------ */
-
-/* Fixée en bas, à la manière d'une application mobile. Le fond est opaque
-   pour que le contenu ne défile pas en transparence dessous. */
-.tab-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  display: flex;
-  justify-content: space-around;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-
-.tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  min-width: 72px;
-  min-height: 44px;
-  padding: 4px 12px;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--fg-faint);
-  text-decoration: none;
-}
-
-.tab.active {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.tab:hover {
-  color: var(--fg);
-}
-
-.tab.active:hover {
-  color: var(--accent);
-}
-
-/* --- Jeux : outils de liste ---------------------------------------------- */
-
-.games-tools {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.list-tabs,
-.chip-row,
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--fg-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.chip:hover {
-  color: var(--fg);
-}
-
-.chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.chip-count {
-  font-size: 0.75rem;
-  opacity: 0.8;
-}
-
-.view-toggle {
-  display: flex;
-  flex: none;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.view-toggle button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 32px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--fg-muted);
-  cursor: pointer;
-}
-
-.view-toggle button.active {
-  background: var(--accent);
-  color: #1a0f0a;
-}
-
-.filter-bar {
-  margin-top: 12px;
-  align-items: center;
-}
-
-.filter-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--fg);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.filter-button.open {
-  border-color: var(--fg-muted);
-}
-
-.filters .section-label {
-  margin: 16px 0 8px;
-}
-
-/* --- Jeux : cartes et lignes ---------------------------------------------- */
-
-.game-grid {
-  list-style: none;
-  margin: 18px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 14px;
-}
-
-.game-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-decoration: none;
-  min-width: 0;
-}
-
-.game-tile-art {
-  position: relative;
-}
-
-.game-cover {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 10px;
-  object-fit: contain;
-  background: var(--surface-hover);
-  border: 1px solid var(--border-strong);
-}
-
-.game-cover.small {
-  width: 64px;
-  flex: none;
-  border-radius: 8px;
-}
-
-.game-cover.large {
-  width: 120px;
-  flex: none;
-  border-radius: 12px;
-}
-
-.game-cover-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display-stack);
-  font-weight: 700;
-  font-size: 1.75rem;
-  color: var(--fg-faint);
-}
-
-.game-cover.small.game-cover-empty {
-  font-size: 1.25rem;
-}
-
-.game-tile:hover .game-cover {
-  border-color: var(--fg-faint);
-}
-
-.game-info {
-  font-size: 0.8125rem;
-  color: var(--fg-muted);
-}
-
-.game-list {
-  margin-top: 18px;
-}
-
-.tag {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  max-width: calc(100% - 16px);
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tag.loan {
-  background: var(--info-soft);
-  color: var(--info);
-}
-
-.tag.inline {
-  position: static;
-  align-self: flex-start;
-}
-
 .plain-list {
   list-style: none;
   margin: 0;
@@ -1060,61 +1048,357 @@ button[type="submit"].danger {
   text-decoration: none;
 }
 
-/* --- Jeux : fiche --------------------------------------------------------- */
+/* --- Barre d'onglets ------------------------------------------------------- */
 
-.accent-text {
-  color: var(--accent);
-}
-
-.positive-text {
-  color: var(--positive);
-}
-
-.buy-form {
-  margin-top: 16px;
-}
-
-.stat-tiles.three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.stat-tiles.three strong {
-  font-size: 1.0625rem;
-}
-
-.game-panel {
+/* Une gélule flottante au-dessus du bas d'écran : l'onglet actif porte son
+   nom, les autres leur seule icône (et un libellé pour les lecteurs d'écran). */
+.tab-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 40;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(20, 28, 32, 0.85);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
 }
 
-.game-panel h2 {
-  font-size: 1.0625rem;
-  margin: 0;
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 52px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
 }
 
-.game-panel .hint {
-  margin: 0;
+.tab:not(.active) span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-.panel-head {
+.tab.active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.tab:not(.active):hover {
+  color: var(--fg);
+}
+
+/* --- Jeux : liste ---------------------------------------------------------- */
+
+.games-tools {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+}
+
+.segmented,
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.segmented a {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.segmented a.active {
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.view-toggle {
+  flex: none;
+}
+
+.view-toggle button[type="submit"] {
+  width: 36px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg-muted);
+  align-self: auto;
+}
+
+.view-toggle button[type="submit"].active {
+  background: var(--lilac);
+  color: var(--on-lilac);
+}
+
+.tonight-card {
+  display: flex;
+  align-items: center;
   gap: 12px;
+  padding: 18px;
+  border-radius: 26px;
+  background:
+    linear-gradient(120deg, rgba(253, 186, 140, 0.16), rgba(167, 139, 250, 0.08)),
+    var(--glass);
+  text-decoration: none;
 }
 
-.game-panel.loan {
-  background: var(--info-soft);
-  border-color: #2b3a4d;
+.tonight-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
-.loan-since {
+.tonight-text .badge {
+  margin-bottom: 4px;
+}
+
+.tonight-text strong {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tonight-text em {
+  font-size: 1.375rem;
+  line-height: 1.1;
+}
+
+.tonight-text .subtitle {
+  margin-top: 4px;
+}
+
+.tonight-stack {
+  display: flex;
+  flex: none;
+}
+
+.tonight-stack .game-cover.mini + .game-cover.mini {
+  margin-left: -26px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: -8px;
+}
+
+.filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.filter-button.open {
+  border-color: var(--border-strong);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -8px;
+}
+
+.filters .section-label + .chip-row {
+  margin-bottom: 6px;
+}
+
+.game-grid {
+  list-style: none;
   margin: 0;
-  font-size: 0.875rem;
-  color: var(--info);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 14px;
+}
+
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.game-tile-art {
+  position: relative;
+}
+
+.game-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  object-fit: contain;
+  background: var(--bg-raise);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.game-cover.small {
+  width: 64px;
+  flex: none;
+  border-radius: 14px;
+}
+
+.game-cover.mini {
+  width: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--bg);
+}
+
+.game-cover.large {
+  width: 180px;
+  border-radius: 24px;
+}
+
+/* Sans image : une boîte au dégradé du jeu, son nom en grand. */
+.game-cover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10%;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+.game-cover-empty span {
+  font-weight: 800;
+  font-size: 14cqi;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  overflow-wrap: anywhere;
+}
+
+.game-cover.mini.game-cover-empty span {
+  display: none;
+}
+
+.game-cover.small.game-cover-empty span {
+  font-size: 0;
+}
+
+.game-cover.small.game-cover-empty span::first-letter {
+  font-size: 1.25rem;
+}
+
+.game-tile:hover .game-cover {
+  transform: translateY(-2px);
+}
+
+.game-cover {
+  transition: transform 0.15s ease;
+}
+
+.game-meta,
+.game-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+}
+
+.game-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(11, 16, 19, 0.7);
+  color: var(--fg);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.tag.loan {
+  background: var(--lilac);
+  color: var(--on-lilac);
+}
+
+.tag.inline {
+  position: static;
+  align-self: flex-start;
+}
+
+/* --- Jeux : fiche ---------------------------------------------------------- */
+
+.game-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.game-hero .game-cover {
+  margin-bottom: 10px;
+}
+
+.game-hero .subtitle {
+  margin: 0;
+}
+
+.game-hero .badge {
+  align-self: center;
+  margin-top: 4px;
+}
+
+.buy-form button[type="submit"] {
+  align-self: stretch;
 }
 
 .expansion-list,
@@ -1124,55 +1408,68 @@ button[type="submit"].danger {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
-.expansion-list li {
+.expansion-list li,
+.play-list li {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px 0;
 }
 
-/* Zone de toucher de 44 px, case visible de 22 px. */
-.check {
+.expansion-list li + li,
+.play-list li + li,
+.expansion-list + .inline-form {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.list-card > .hint {
+  padding: 12px 0;
+}
+
+/* Zone de toucher de 44 px, case visible de 24 px. */
+button[type="submit"].check {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
   width: 44px;
   height: 44px;
-  margin: -11px;
+  min-height: 44px;
+  margin: -10px;
   padding: 0;
-  border: 0;
+  border-radius: 0;
   background: transparent;
-  cursor: pointer;
+  align-self: auto;
 }
 
 .check .box {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 1.5px dashed #4a453f;
-  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--peach);
 }
 
 .check.on .box {
   border: 0;
-  background: var(--positive);
-  color: #10241a;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .expansion-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: 4px;
 }
 
 .expansion-text span {
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .expansion-text .muted {
@@ -1181,41 +1478,62 @@ button[type="submit"].danger {
 
 .expansion-text small {
   font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.inline-form {
+/* Le prêt en cours : un ticket lilas, l'emprunteur en italique. */
+.loan-ticket {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: linear-gradient(120deg, #ddd6fe, #a78bfa);
+  color: var(--on-lilac);
+  box-shadow: 0 18px 40px rgba(76, 29, 149, 0.35);
 }
 
-.inline-form input,
-.inline-form select {
+.loan-ticket > div {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
-  font: inherit;
-  font-size: 16px;
-  padding: 10px 12px;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
 }
 
-.inline-form select {
-  flex: none;
+.ticket-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
-.inline-form button[type="submit"] {
-  flex: none;
-  align-self: auto;
+.loan-ticket strong {
+  font-family: var(--font-serif-stack);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.loan-ticket span:last-child {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+button[type="submit"].ticket-button {
+  min-height: 38px;
+  padding: 0 14px;
+  background: var(--on-lilac);
+  color: #ddd6fe;
+  font-size: 0.75rem;
 }
 
 .play-form summary {
   list-style: none;
   cursor: pointer;
-  align-self: flex-start;
-  display: inline-flex;
 }
 
 .play-form summary::-webkit-details-marker {
@@ -1223,53 +1541,29 @@ button[type="submit"].danger {
 }
 
 .play-form[open] summary {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.pill-button.small {
-  min-height: 36px;
-  padding: 0 14px;
-  font-size: 0.875rem;
-}
-
-.check-group {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.check-group legend {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--fg-muted);
-  margin-bottom: 6px;
-  padding: 0;
-}
-
-.check-row input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  flex: none;
-  accent-color: var(--accent);
+.play-form[open] summary .pill-button {
+  background: var(--glass-flat);
+  color: var(--fg);
 }
 
 .play-list li {
-  display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
+}
+
+/* La liste des parties est aussi une carte : sa marge intérieure l'emporte
+   sur la remise à zéro des listes. */
+.panel.list-card.play-list {
+  padding: 6px 16px;
 }
 
 .play-date {
   flex: none;
   width: 64px;
-  font-family: var(--font-display-stack);
   font-size: 0.875rem;
+  font-weight: 700;
 }
 
 .play-text {
@@ -1277,7 +1571,7 @@ button[type="submit"].danger {
   flex-direction: column;
   flex: 1;
   min-width: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .play-text small {
@@ -1285,83 +1579,34 @@ button[type="submit"].danger {
   color: var(--fg-muted);
 }
 
-.icon-button,
-.link-button {
-  border: 0;
-  background: transparent;
-  color: var(--fg-faint);
-  cursor: pointer;
-  font: inherit;
-}
-
-.icon-button {
-  width: 32px;
-  height: 32px;
-  margin: -6px -6px 0 0;
-  font-size: 1.125rem;
-  border-radius: 999px;
-}
-
-.icon-button:hover,
-.link-button:hover {
-  color: var(--negative);
-}
-
-.link-button {
-  font-size: 0.8125rem;
-  text-decoration: underline;
-}
-
-.remove-row {
-  display: flex;
-  justify-content: space-between;
+.play-text .winner {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  font-size: 0.875rem;
+  gap: 4px;
+  color: var(--peach);
+  font-weight: 600;
 }
 
-/* Les règles générales des boutons d'envoi (fond clair, marge interne) ne
-   valent pas pour ces boutons-là, qui sont des contrôles et pas des actions. */
-button[type="submit"].check,
 button[type="submit"].icon-button,
-button[type="submit"].link-button,
-.view-toggle button[type="submit"] {
+button[type="submit"].link-button {
+  min-height: 0;
   padding: 0;
   background: transparent;
+  color: var(--fg-faint);
   align-self: auto;
-  font-family: inherit;
-  letter-spacing: normal;
-}
-
-.view-toggle button[type="submit"] {
-  width: 38px;
-  height: 32px;
-  border-radius: 999px;
-  color: var(--fg-muted);
-}
-
-.view-toggle button[type="submit"].active {
-  background: var(--accent);
-  color: #1a0f0a;
-}
-
-button[type="submit"].check {
-  width: 44px;
-  height: 44px;
-  border-radius: 0;
+  font-weight: 400;
 }
 
 button[type="submit"].icon-button {
   width: 32px;
   height: 32px;
-  color: var(--fg-faint);
+  margin: -6px -6px 0 0;
   font-size: 1.125rem;
 }
 
 button[type="submit"].link-button {
-  color: var(--fg-faint);
   font-size: 0.8125rem;
-  font-weight: 400;
+  text-decoration: underline;
 }
 
 button[type="submit"].icon-button:hover,
@@ -1370,29 +1615,14 @@ button[type="submit"].link-button:hover {
   opacity: 1;
 }
 
-/* La bascule de vue se range au bout de la barre de filtre. */
-.filter-bar .view-toggle {
-  margin-left: auto;
-}
+/* --- Écrans larges ---------------------------------------------------------- */
 
-/* Le champ d'abord, sur toute la largeur ; le choix et le bouton dessous. */
-.inline-form {
-  flex-wrap: wrap;
-}
+@media (min-width: 720px) {
+  .game-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 
-.inline-form input {
-  flex: 1 1 100%;
-}
-
-/* Champ et bouton seuls : ils tiennent sur une ligne. */
-.inline-form.single input {
-  flex: 1 1 0;
-}
-
-.inline-form input + button[type="submit"] {
-  flex: none;
-}
-
-.stat-tiles.three strong {
-  font-size: 1rem;
+  .volume-grid {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+  }
 }
