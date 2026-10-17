@@ -5,7 +5,10 @@ Suivi de mes collections de mangas, en français.
 Le projet reprend la stack et les conventions de
 [MyCards](https://github.com/xPhoeNiXiSx/MyCards).
 
-Deux écrans :
+Une barre d'onglets en bas mène aux deux collections — **Mangas** et
+**Jeux** — et au **Compte**.
+
+Côté mangas, deux écrans :
 
 - **`/`** — une carte par série, avec la couverture du prochain tome à
   acheter, le compteur (84/108), une barre de progression et les trous
@@ -15,6 +18,35 @@ Deux écrans :
 
 Et **`/series/nouvelle`** pour ajouter une série : recherche par titre, puis
 éditeur français et « j'ai déjà les tomes 1 à… ».
+
+Côté jeux de société :
+
+- **`/jeux`** — la collection, les envies et les jeux prêtés, en cartes ou en
+  liste (le choix est gardé en base, `jeux.vue`), filtrable par nombre de
+  joueurs et par durée
+- **`/jeux/[id]`** — la fiche : joueurs, durée, âge, extensions à cocher, prêt
+  en cours, parties jouées
+- **`/jeux/nouveau`** — recherche BoardGameGeek, ou saisie à la main
+
+## Jeux de société
+
+Un jeu voulu et un jeu possédé sont la même ligne (`games.status`) : l'achat
+n'est qu'une bascule. Les extensions sont rattachées à leur jeu
+(`game_expansions`), possédées ou voulues ; les voulues apparaissent dans les
+envies. Un jeu n'a qu'un prêt en cours à la fois (`game_loans`, index unique
+partiel sur les prêts sans date de retour). Une partie garde sa date, le
+nombre de joueurs, le gagnant et les extensions utilisées (`game_plays`).
+
+Filtres : un jeu « 3–4 joueurs » est un jeu jouable à 3 ou à 4 ; « < 1 h »
+porte sur la durée maximale. Un jeu dont l'info manque n'apparaît pas quand
+on filtre dessus — mieux vaut un jeu absent qu'un jeu qui ne tient pas dans
+la soirée.
+
+**BoardGameGeek** (`lib/bgg.ts`) fournit la fiche et le visuel. Depuis juillet
+2025 son API exige une application enregistrée (boardgamegeek.com/applications)
+et son jeton, à mettre dans `BGG_API_TOKEN`. Sans jeton, tout fonctionne et le
+jeu se saisit à la main. BGG listant tous les éditeurs du monde, un éditeur
+français connu est préféré quand il y en a un.
 
 ## Séries et tomes
 
@@ -91,7 +123,7 @@ change. Pas besoin de base ni de réseau pour les lancer.
 
 ## Configuration
 
-Trois variables d'environnement (plus une facultative), à définir dans Vercel (Settings →
+Trois variables d'environnement (plus deux facultatives), à définir dans Vercel (Settings →
 Environment Variables) et dans un `.env.local` pour le développement :
 
 | Variable       | Rôle                                                        |
@@ -100,6 +132,7 @@ Environment Variables) et dans un `.env.local` pour le développement :
 | `APP_PASSWORD` | Mot de passe unique d'accès à l'application                  |
 | `AUTH_SECRET`  | Clé de signature du cookie de session — une valeur aléatoire |
 | `GOOGLE_BOOKS_API_KEY` | Facultative. Sans clé, Google Books limite fortement les requêtes |
+| `BGG_API_TOKEN` | Facultative. Jeton BoardGameGeek pour chercher les jeux et leurs visuels |
 
 Tant qu'elles manquent, l'accueil affiche un écran expliquant ce qui manque
 plutôt que de planter. Générer un secret : `openssl rand -base64 32`.
@@ -127,6 +160,8 @@ panneau indique la date du dernier passage (`migrations.last_run` dans
 | `app/page.tsx`       | Accueil : les séries et le prochain tome à acheter         |
 | `app/series/`        | Page d'une série, grille des tomes, ajout, actions serveur |
 | `app/cover.tsx`      | Couverture d'un tome, ou vignette numérotée à défaut       |
+| `app/jeux/`          | Jeux : liste, fiche, ajout, actions serveur                |
+| `app/tab-bar.tsx`    | Barre d'onglets fixée en bas : Mangas, Jeux, Compte        |
 | `app/compte/`        | Compte : déconnexion, application des migrations           |
 | `app/login/`         | Connexion par mot de passe                                 |
 | `app/db-screens.tsx` | Écrans d'attente de la base, partagés par les pages        |
@@ -141,6 +176,8 @@ panneau indique la date du dernier passage (`migrations.last_run` dans
 | `lib/series.ts`      | Séries, tomes cochés, couvertures, calcul du prochain tome |
 | `lib/sources.ts`     | Google Books et MangaDex — serveur uniquement              |
 | `lib/refresh.ts`     | Actualisation d'une série depuis les sources               |
+| `lib/games.ts`       | Jeux, extensions, prêts, parties, filtres de la liste      |
+| `lib/bgg.ts`         | BoardGameGeek — serveur uniquement                         |
 | `lib/format.ts`      | Mises en forme utilisables côté navigateur                 |
 | `lib/money.ts`       | Montants en centimes, formatage et saisie en euros         |
 

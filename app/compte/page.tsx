@@ -33,7 +33,7 @@ export default async function ComptePage() {
 
   return (
     <main className="page narrow">
-      <Masthead account={false} />
+      <Masthead />
       <h1 className="page-title">Mon compte</h1>
 
       <div className="panel">

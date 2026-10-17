@@ -10,7 +10,7 @@ export default async function LoginPage({
 
   return (
     <main className="page narrow">
-      <Masthead account={false} />
+      <Masthead />
       <h1 className="page-title">Connexion</h1>
       <LoginForm next={next ?? ""} />
     </main>

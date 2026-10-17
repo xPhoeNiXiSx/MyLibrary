@@ -29,6 +29,8 @@
   --positive: #6cc08b;
   --positive-soft: #1a2b22;
   --negative: #ef8b7d;
+  --info: #8fb3e0;
+  --info-soft: #1c2633;
   --negative-soft: #2f1e1b;
 
   --radius-sm: 8px;
@@ -97,7 +99,7 @@ a {
 .page {
   max-width: 1160px;
   margin: 0 auto;
-  padding: 0 16px calc(40px + env(safe-area-inset-bottom, 0px));
+  padding: 0 16px calc(104px + env(safe-area-inset-bottom, 0px));
 }
 
 .page.narrow {
@@ -795,4 +797,602 @@ button[type="submit"].danger {
 .panel + .hint,
 .panel + .error {
   margin-top: 16px;
+}
+
+/* --- Barre d'onglets ------------------------------------------------------ */
+
+/* Fixée en bas, à la manière d'une application mobile. Le fond est opaque
+   pour que le contenu ne défile pas en transparence dessous. */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 72px;
+  min-height: 44px;
+  padding: 4px 12px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--fg-faint);
+  text-decoration: none;
+}
+
+.tab.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tab:hover {
+  color: var(--fg);
+}
+
+.tab.active:hover {
+  color: var(--accent);
+}
+
+/* --- Jeux : outils de liste ---------------------------------------------- */
+
+.games-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.list-tabs,
+.chip-row,
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  color: var(--fg);
+}
+
+.chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chip-count {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.view-toggle {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.view-toggle button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+
+.view-toggle button.active {
+  background: var(--accent);
+  color: #1a0f0a;
+}
+
+.filter-bar {
+  margin-top: 12px;
+  align-items: center;
+}
+
+.filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.filter-button.open {
+  border-color: var(--fg-muted);
+}
+
+.filters .section-label {
+  margin: 16px 0 8px;
+}
+
+/* --- Jeux : cartes et lignes ---------------------------------------------- */
+
+.game-grid {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
+}
+
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.game-tile-art {
+  position: relative;
+}
+
+.game-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  object-fit: contain;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-strong);
+}
+
+.game-cover.small {
+  width: 64px;
+  flex: none;
+  border-radius: 8px;
+}
+
+.game-cover.large {
+  width: 120px;
+  flex: none;
+  border-radius: 12px;
+}
+
+.game-cover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display-stack);
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: var(--fg-faint);
+}
+
+.game-cover.small.game-cover-empty {
+  font-size: 1.25rem;
+}
+
+.game-tile:hover .game-cover {
+  border-color: var(--fg-faint);
+}
+
+.game-info {
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+}
+
+.game-list {
+  margin-top: 18px;
+}
+
+.tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  max-width: calc(100% - 16px);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag.loan {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.tag.inline {
+  position: static;
+  align-self: flex-start;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plain-list a {
+  text-decoration: none;
+}
+
+/* --- Jeux : fiche --------------------------------------------------------- */
+
+.accent-text {
+  color: var(--accent);
+}
+
+.positive-text {
+  color: var(--positive);
+}
+
+.buy-form {
+  margin-top: 16px;
+}
+
+.stat-tiles.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.stat-tiles.three strong {
+  font-size: 1.0625rem;
+}
+
+.game-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-panel h2 {
+  font-size: 1.0625rem;
+  margin: 0;
+}
+
+.game-panel .hint {
+  margin: 0;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.game-panel.loan {
+  background: var(--info-soft);
+  border-color: #2b3a4d;
+}
+
+.loan-since {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--info);
+}
+
+.expansion-list,
+.play-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expansion-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Zone de toucher de 44 px, case visible de 22 px. */
+.check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -11px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.check .box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px dashed #4a453f;
+  box-sizing: border-box;
+}
+
+.check.on .box {
+  border: 0;
+  background: var(--positive);
+  color: #10241a;
+}
+
+.expansion-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.expansion-text span {
+  font-weight: 500;
+}
+
+.expansion-text .muted {
+  color: var(--fg-muted);
+}
+
+.expansion-text small {
+  font-size: 0.75rem;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inline-form input,
+.inline-form select {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.inline-form select {
+  flex: none;
+}
+
+.inline-form button[type="submit"] {
+  flex: none;
+  align-self: auto;
+}
+
+.play-form summary {
+  list-style: none;
+  cursor: pointer;
+  align-self: flex-start;
+  display: inline-flex;
+}
+
+.play-form summary::-webkit-details-marker {
+  display: none;
+}
+
+.play-form[open] summary {
+  margin-bottom: 14px;
+}
+
+.pill-button.small {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+}
+
+.check-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.check-group legend {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.check-row input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.play-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.play-date {
+  flex: none;
+  width: 64px;
+  font-family: var(--font-display-stack);
+  font-size: 0.875rem;
+}
+
+.play-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.play-text small {
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}
+
+.icon-button,
+.link-button {
+  border: 0;
+  background: transparent;
+  color: var(--fg-faint);
+  cursor: pointer;
+  font: inherit;
+}
+
+.icon-button {
+  width: 32px;
+  height: 32px;
+  margin: -6px -6px 0 0;
+  font-size: 1.125rem;
+  border-radius: 999px;
+}
+
+.icon-button:hover,
+.link-button:hover {
+  color: var(--negative);
+}
+
+.link-button {
+  font-size: 0.8125rem;
+  text-decoration: underline;
+}
+
+.remove-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+/* Les règles générales des boutons d'envoi (fond clair, marge interne) ne
+   valent pas pour ces boutons-là, qui sont des contrôles et pas des actions. */
+button[type="submit"].check,
+button[type="submit"].icon-button,
+button[type="submit"].link-button,
+.view-toggle button[type="submit"] {
+  padding: 0;
+  background: transparent;
+  align-self: auto;
+  font-family: inherit;
+  letter-spacing: normal;
+}
+
+.view-toggle button[type="submit"] {
+  width: 38px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--fg-muted);
+}
+
+.view-toggle button[type="submit"].active {
+  background: var(--accent);
+  color: #1a0f0a;
+}
+
+button[type="submit"].check {
+  width: 44px;
+  height: 44px;
+  border-radius: 0;
+}
+
+button[type="submit"].icon-button {
+  width: 32px;
+  height: 32px;
+  color: var(--fg-faint);
+  font-size: 1.125rem;
+}
+
+button[type="submit"].link-button {
+  color: var(--fg-faint);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+button[type="submit"].icon-button:hover,
+button[type="submit"].link-button:hover {
+  color: var(--negative);
+  opacity: 1;
+}
+
+/* La bascule de vue se range au bout de la barre de filtre. */
+.filter-bar .view-toggle {
+  margin-left: auto;
+}
+
+/* Le champ d'abord, sur toute la largeur ; le choix et le bouton dessous. */
+.inline-form {
+  flex-wrap: wrap;
+}
+
+.inline-form input {
+  flex: 1 1 100%;
+}
+
+/* Champ et bouton seuls : ils tiennent sur une ligne. */
+.inline-form.single input {
+  flex: 1 1 0;
+}
+
+.inline-form input + button[type="submit"] {
+  flex: none;
+}
+
+.stat-tiles.three strong {
+  font-size: 1rem;
 }

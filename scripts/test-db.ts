@@ -17,7 +17,33 @@ import {
   runMigrations,
   setQueryRunner,
 } from "../lib/db";
-import { formatGaps } from "../lib/format";
+import { readSearchIds, readThings } from "../lib/bgg";
+import {
+  daysBetween,
+  durationLabel,
+  formatGaps,
+  longDate,
+  playersLabel,
+  shortDate,
+} from "../lib/format";
+import {
+  addExpansion,
+  addPlay,
+  createGame,
+  deleteGame,
+  deletePlay,
+  gameCounts,
+  getGame,
+  getGamesView,
+  lendGame,
+  listGames,
+  returnGame,
+  setExpansionStatus,
+  setGamesView,
+  setGameStatus,
+  wantedExpansions,
+  type GameInput,
+} from "../lib/games";
 import { SCHEMA_STATEMENTS } from "../lib/schema";
 import { formatCents, parseEuros, percentChange } from "../lib/money";
 import { isStale, refreshSeries } from "../lib/refresh";
@@ -373,6 +399,148 @@ async function main() {
   assert.equal(formatGaps([12, 51]), "T12, T51");
   assert.equal(formatGaps([1, 2, 3, 4, 5], 3), "T1, T2, T3 et 2 autres");
   ok("mise en forme des tomes manquants");
+
+  // --- Jeux de société ---------------------------------------------------
+
+  const base: GameInput = {
+    title: "Catan", status: "owned", designer: "Klaus Teuber", publisher: "Kosmos", year: 1995,
+    minPlayers: 3, maxPlayers: 4, minMinutes: 60, maxMinutes: 120, minAge: 10, imageUrl: null, bggId: "13",
+  };
+  const catan = await createGame(base);
+  assert.equal(catan.created, true);
+  const again2 = await createGame({ ...base, title: "Catan (doublon)" });
+  assert.deepEqual(again2, { id: catan.id, created: false });
+  ok("un jeu envoyé deux fois n'est créé qu'une fois");
+
+  const azul = (await createGame({ ...base, title: "Azul", bggId: null, minPlayers: 2, maxPlayers: 4, minMinutes: 30, maxMinutes: 45, minAge: 8 })).id;
+  const duel = (await createGame({ ...base, title: "7 Wonders Duel", bggId: null, minPlayers: 2, maxPlayers: 2, minMinutes: 30, maxMinutes: 30 })).id;
+  const dixit = (await createGame({ ...base, title: "Dixit", bggId: null, minPlayers: 3, maxPlayers: 8, minMinutes: 30, maxMinutes: 30 })).id;
+  const mystery = (await createGame({ ...base, title: "Jeu sans infos", bggId: null, minPlayers: null, maxPlayers: null, minMinutes: null, maxMinutes: null })).id;
+  const wanted = (await createGame({ ...base, title: "Wingspan", bggId: null, status: "wanted" })).id;
+
+  const titles = async (opts: Parameters<typeof listGames>[0]) => (await listGames(opts)).map((g) => g.title);
+  assert.deepEqual(await titles({}), ["7 Wonders Duel", "Azul", "Catan", "Dixit", "Jeu sans infos"]);
+  assert.deepEqual(await titles({ players: "2" }), ["7 Wonders Duel", "Azul"]);
+  assert.deepEqual(await titles({ players: "3-4" }), ["Azul", "Catan", "Dixit"]);
+  assert.deepEqual(await titles({ players: "5+" }), ["Dixit"]);
+  assert.deepEqual(await titles({ duration: "30" }), ["7 Wonders Duel", "Dixit"]);
+  assert.deepEqual(await titles({ duration: "60" }), ["7 Wonders Duel", "Azul", "Dixit"]);
+  assert.deepEqual(await titles({ duration: "plus" }), ["Catan"]);
+  assert.deepEqual(await titles({ players: "3-4", duration: "60" }), ["Azul", "Dixit"]);
+  assert.deepEqual(await titles({ list: "envies" }), ["Wingspan"]);
+  ok("filtres joueurs et durée, un jeu sans infos écarté quand on filtre dessus");
+
+  await addExpansion(catan.id, "Marins", "owned");
+  await addExpansion(catan.id, "marins", "owned");
+  await addExpansion(catan.id, "Villes et Chevaliers", "owned");
+  await addExpansion(catan.id, "Explorateurs et Pirates", "wanted");
+  let detail = (await getGame(catan.id))!;
+  assert.equal(detail.expansions.length, 3);
+  assert.equal(detail.ownedExpansions, 2);
+  assert.deepEqual((await wantedExpansions()).map((e) => [e.title, e.gameTitle]), [["Explorateurs et Pirates", "Catan"]]);
+  const pirates = detail.expansions.find((e) => e.title === "Explorateurs et Pirates")!;
+  await setExpansionStatus(pirates.id, "owned");
+  assert.equal((await getGame(catan.id))!.ownedExpansions, 3);
+  assert.equal((await wantedExpansions()).length, 0);
+  ok("extensions rattachées, sans doublon de nom, possédées ou en envie");
+
+  await lendGame(dixit, "Julie", "2026-10-02");
+  await lendGame(dixit, "Marc", null);
+  const lent = await listGames({ list: "pretes" });
+  assert.deepEqual(lent.map((g) => [g.title, g.loan?.borrower, g.loan?.lentOn]), [["Dixit", "Julie", "2026-10-02"]]);
+  assert.deepEqual(await gameCounts(), { collection: 5, envies: 1, pretes: 1 });
+  await returnGame(dixit);
+  assert.equal((await getGame(dixit))!.loan, null);
+  await lendGame(dixit, "Marc", "2026-10-10");
+  assert.equal((await getGame(dixit))!.loan?.borrower, "Marc");
+  ok("un seul prêt en cours par jeu, et un jeu rendu se reprête");
+
+  const marins = detail.expansions.find((e) => e.title === "Marins")!;
+  await addPlay(catan.id, { playedOn: "2026-09-27", players: 3, winner: "Julie", expansions: [], notes: null });
+  await addPlay(catan.id, { playedOn: "2026-10-11", players: 4, winner: "Thomas", expansions: [marins.id], notes: "Serré" });
+  detail = (await getGame(catan.id))!;
+  assert.equal(detail.playCount, 2);
+  assert.equal(detail.lastPlayed, "2026-10-11");
+  assert.deepEqual(detail.plays.map((p) => p.playedOn), ["2026-10-11", "2026-09-27"]);
+  assert.deepEqual(detail.plays[0].expansions, [marins.id]);
+  await deletePlay(detail.plays[1].id);
+  assert.equal((await getGame(catan.id))!.playCount, 1);
+  ok("parties : les plus récentes d'abord, extensions utilisées gardées");
+
+  await setGameStatus(wanted, "owned");
+  assert.deepEqual(await titles({ list: "envies" }), []);
+  ok("acheter un jeu voulu le fait passer dans la collection");
+
+  assert.equal(await getGamesView(), "cartes");
+  await setGamesView("liste");
+  assert.equal(await getGamesView(), "liste");
+  ok("la vue choisie (cartes ou liste) est mémorisée");
+
+  await deleteGame(catan.id);
+  assert.equal(await getGame(catan.id), null);
+  for (const table of ["game_expansions", "game_loans", "game_plays"]) {
+    assert.equal((await query(`select 1 from ${table} where game_id = $1`, [catan.id])).length, 0);
+  }
+  for (const id of [azul, duel, dixit, mystery, wanted]) await deleteGame(id);
+  ok("retirer un jeu emporte ses extensions, prêts et parties");
+
+  assert.equal(playersLabel(2, 4), "2–4");
+  assert.equal(playersLabel(2, 2, true), "2 joueurs");
+  assert.equal(playersLabel(1, 1, true), "1 joueur");
+  assert.equal(playersLabel(null, null), null);
+  assert.equal(durationLabel(30, 45), "30–45 min");
+  assert.equal(shortDate("2026-10-11"), "11 oct.");
+  assert.equal(longDate("2026-10-01"), "1er octobre");
+  assert.equal(daysBetween("2026-10-02", "2026-10-17"), 15);
+  ok("mise en forme des joueurs, durées et dates");
+
+  const thingXml = `<?xml version="1.0" encoding="utf-8"?><items termsofuse="https://boardgamegeek.com/xmlapi/termsofuse">
+    <item type="boardgame" id="13">
+      <thumbnail>https://cf.geekdo-images.com/t.jpg</thumbnail>
+      <image>https://cf.geekdo-images.com/i.jpg</image>
+      <name type="primary" sortindex="1" value="CATAN" />
+      <name type="alternate" sortindex="1" value="Les Colons de Catane" />
+      <description>Trade &amp; build</description>
+      <yearpublished value="1995" />
+      <minplayers value="3" />
+      <maxplayers value="4" />
+      <playingtime value="120" />
+      <minplaytime value="60" />
+      <maxplaytime value="120" />
+      <minage value="10" />
+      <link type="boardgamedesigner" id="11" value="Klaus Teuber" />
+      <link type="boardgamepublisher" id="37" value="KOSMOS" />
+      <link type="boardgamepublisher" id="4" value="Filosofia Éditions" />
+      <link type="boardgameexpansion" id="325" value="Catan: Seafarers" />
+      <link type="boardgameexpansion" id="926" value="Catan: Cities &amp; Knights" />
+    </item>
+    <item type="boardgameexpansion" id="325">
+      <name type="primary" sortindex="1" value="Catan: Seafarers" />
+      <minplayers value="0" />
+      <playingtime value="90" />
+      <link type="boardgameexpansion" id="13" value="CATAN" inbound="true" />
+    </item></items>`;
+  const things = readThings(thingXml);
+  assert.equal(things.length, 2);
+  assert.deepEqual(
+    { ...things[0], expansions: things[0].expansions },
+    {
+      id: "13", title: "CATAN", year: 1995, designer: "Klaus Teuber", publisher: "Filosofia Éditions",
+      minPlayers: 3, maxPlayers: 4, minMinutes: 60, maxMinutes: 120, minAge: 10,
+      imageUrl: "https://cf.geekdo-images.com/i.jpg", thumbnailUrl: "https://cf.geekdo-images.com/t.jpg",
+      expansions: ["Catan: Seafarers", "Catan: Cities & Knights"],
+    },
+  );
+  assert.equal(things[1].minPlayers, null);
+  assert.equal(things[1].minMinutes, 90);
+  assert.deepEqual(things[1].expansions, []);
+  ok("BoardGameGeek : fiche, éditeur français préféré, extensions du jeu de base");
+
+  assert.deepEqual(
+    readSearchIds(`<items total="2"><item type="boardgame" id="13"><name type="primary" value="CATAN"/></item><item type="boardgame" id="27710"><name value="Catan Dice Game"/></item></items>`),
+    ["13", "27710"],
+  );
+  ok("BoardGameGeek : identifiants d'une recherche, dans l'ordre");
 
   // --- Limitation des connexions ---------------------------------------
 
